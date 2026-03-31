@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Currency — POC Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:     #080A0E;
+  --bg2:    #0F1117;
+  --bg3:    #161922;
+  --bg4:    #1E2130;
+  --border: rgba(255,255,255,0.07);
+  --text:   #F0F0F0;
+  --muted:  rgba(240,240,240,0.45);
+  --dim:    rgba(240,240,240,0.20);
+  --green:  #22c55e;
+  --g-dim:  rgba(34,197,94,0.10);
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;overflow-x:hidden;
+}
+
+/* ── Noise texture overlay ─────────────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.6;
+}
+
+/* ── Top gradient glow ─────────────────────────────────────── */
+.top-glow{
+  position:fixed;top:-200px;left:50%;transform:translateX(-50%);
+  width:800px;height:400px;
+  background:radial-gradient(ellipse, rgba(34,197,94,0.09) 0%, transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── Nav ───────────────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:18px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(8,10,14,0.8);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-icon{
+  width:32px;height:32px;border-radius:10px;
+  background:var(--green);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 20px rgba(34,197,94,0.3);
+}
+.nav-logo-icon svg{width:17px;height:17px}
+.nav-brand{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;letter-spacing:-0.01em}
+.nav-brand span{color:var(--green)}
+.nav-badge{
+  padding:5px 12px;border-radius:20px;
+  background:var(--g-dim);border:1px solid rgba(34,197,94,0.2);
+  font-size:11px;font-weight:600;color:var(--green);letter-spacing:0.06em;
+  text-transform:uppercase;
+}
+
+/* ── Hero ──────────────────────────────────────────────────── */
+.hero{
+  position:relative;z-index:1;
+  padding:160px 40px 80px;
+  max-width:900px;margin:0 auto;text-align:center;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;border-radius:20px;
+  background:var(--g-dim);border:1px solid rgba(34,197,94,0.18);
+  font-size:12px;font-weight:600;color:var(--green);
+  letter-spacing:0.08em;text-transform:uppercase;margin-bottom:28px;
+}
+.hero-eyebrow::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 6px var(--green);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.hero-title{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(42px, 6vw, 72px);
+  line-height:1.05;letter-spacing:-0.03em;
+  margin-bottom:24px;
+}
+.hero-title .accent{
+  background:linear-gradient(135deg,#22c55e 0%,#86efac 60%,#ffffff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{
+  font-size:18px;color:var(--muted);line-height:1.65;
+  max-width:600px;margin:0 auto 48px;font-weight:400;
+}
+.hero-meta{
+  display:flex;align-items:center;justify-content:center;gap:32px;
+  flex-wrap:wrap;
+}
+.hero-stat{text-align:center}
+.hero-stat-n{
+  font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;
+  color:var(--text);letter-spacing:-0.02em;
+}
+.hero-stat-n span{color:var(--green)}
+.hero-stat-l{font-size:12px;color:var(--dim);margin-top:3px;text-transform:uppercase;letter-spacing:0.08em;font-weight:500}
+.hero-divider{width:1px;height:40px;background:var(--border)}
+
+/* ── Demos section ─────────────────────────────────────────── */
+.demos{
+  position:relative;z-index:1;
+  padding:0 40px 100px;max-width:1100px;margin:0 auto;
+}
+.section-label{
+  text-align:center;margin-bottom:56px;
+}
+.section-label h2{
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  color:var(--dim);text-transform:uppercase;letter-spacing:0.14em;
+}
+
+/* ── Demo cards ────────────────────────────────────────────── */
+.cards{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+}
+@media(max-width:900px){.cards{grid-template-columns:1fr}}
+
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:24px;overflow:hidden;
+  transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;
+  display:flex;flex-direction:column;
+}
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
+.card-1:hover{border-color:rgba(34,197,94,0.3);box-shadow:0 24px 60px rgba(34,197,94,0.08)}
+.card-2:hover{border-color:rgba(96,165,250,0.3);box-shadow:0 24px 60px rgba(96,165,250,0.08)}
+.card-3:hover{border-color:rgba(228,0,43,0.3);box-shadow:0 24px 60px rgba(228,0,43,0.08)}
+
+/* Phone mockup preview */
+.card-preview{
+  position:relative;padding:28px 28px 0;
+  display:flex;justify-content:center;
+  min-height:260px;overflow:hidden;
+}
+.phone-frame{
+  width:160px;height:280px;border-radius:24px;overflow:hidden;
+  border:2px solid rgba(255,255,255,0.12);
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);
+  position:relative;flex-shrink:0;
+  transform:translateY(20px);
+}
+.phone-screen{width:100%;height:100%;display:flex;flex-direction:column}
+
+/* ── Original theme preview ────────────────────────────────── */
+.preview-original{background:#0f1117}
+.p1-nav{height:36px;background:#0d1018;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;padding:0 10px;gap:6px}
+.p1-dot{width:5px;height:5px;border-radius:50%;background:#22c55e}
+.p1-logo{font-size:7px;font-weight:700;color:#fff;font-family:'Syne',sans-serif}
+.p1-logo span{color:#22c55e}
+.p1-body{flex:1;padding:10px 10px 0}
+.p1-lbl{font-size:5px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px}
+.p1-heading{font-size:10px;font-weight:700;color:#fff;margin-bottom:8px;font-family:'Syne',sans-serif}
+.p1-card{background:#1a1d27;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px;margin-bottom:8px}
+.p1-bal-lbl{font-size:4px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.p1-bal{font-size:16px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;line-height:1}
+.p1-bal span{color:#22c55e;font-size:10px}
+.p1-gbp{font-size:5px;color:rgba(255,255,255,0.3);margin-top:2px}
+.p1-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)}
+.p1-stat-v{font-size:6px;font-weight:700;font-family:'Syne',sans-serif}
+.p1-stat-l{font-size:4px;color:rgba(255,255,255,0.3)}
+.p1-txlist{background:#1a1d27;border:1px solid rgba(255,255,255,0.07);border-radius:10px;overflow:hidden}
+.p1-tx{display:flex;align-items:center;gap:5px;padding:5px 7px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.p1-tx:last-child{border-bottom:none}
+.p1-txi{width:16px;height:16px;border-radius:6px;flex-shrink:0}
+.p1-txn{font-size:5px;font-weight:600;color:#fff;flex:1}
+.p1-txm{font-size:4px;color:rgba(255,255,255,0.3)}
+.p1-txa{font-size:5px;font-weight:600}
+
+/* ── Revolut theme preview ─────────────────────────────────── */
+.preview-revolut{background:#0A0B0F}
+.p2-status{height:18px;background:#13141A;display:flex;align-items:center;justify-content:space-between;padding:0 8px}
+.p2-time{font-size:5px;font-weight:600;color:#fff;font-family:'JetBrains Mono',monospace}
+.p2-body{flex:1;padding:0 0 0}
+.p2-hdr{padding:8px 10px 6px;display:flex;align-items:center;justify-content:space-between}
+.p2-name{font-size:9px;font-weight:800;color:#fff;font-family:'Syne',sans-serif}
+.p2-av{width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,#1a1040,#0891b2);display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:800;color:#fff;font-family:'Syne',sans-serif}
+.p2-hero{margin:0 8px 8px;border-radius:14px;padding:12px 10px 10px;background:linear-gradient(135deg,#1a1040 0%,#1e2a6e 40%,#0891b2 100%);position:relative;overflow:hidden}
+.p2-hl{font-size:4px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.p2-ham{font-size:16px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;line-height:1}
+.p2-ham span{font-size:9px;opacity:0.5}
+.p2-hsub{font-size:4px;color:rgba(255,255,255,0.35);margin-bottom:6px}
+.p2-hstats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid rgba(255,255,255,0.12);padding-top:6px;gap:4px}
+.p2-hsv{font-size:6px;font-weight:600;color:#fff}
+.p2-hsl{font-size:3.5px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em}
+.p2-qrow{display:flex;gap:5px;padding:0 8px 8px;overflow:hidden}
+.p2-qico{width:28px;height:28px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.p2-qlbl{font-size:4px;font-weight:600;color:rgba(255,255,255,0.4);text-align:center;margin-top:2px}
+.p2-strava{margin:0 8px 6px;padding:5px 7px;background:rgba(0,196,140,0.08);border:1px solid rgba(0,196,140,0.2);border-radius:7px;display:flex;align-items:center;gap:5px}
+.p2-sdot{width:5px;height:5px;border-radius:50%;background:#34d399;flex-shrink:0}
+.p2-stext{font-size:4.5px;font-weight:600;color:#34d399}
+.p2-bottom{height:32px;background:#13141A;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center}
+.p2-nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:2px 0}
+.p2-nb svg{width:10px;height:10px}
+.p2-nb span{font-size:3.5px;text-transform:uppercase;letter-spacing:0.04em}
+
+/* ── UBS theme preview ─────────────────────────────────────── */
+.preview-ubs{background:#F4F4F6}
+.p3-hdr{background:#fff;border-bottom:1px solid rgba(0,0,0,0.07);padding:7px 10px;display:flex;align-items:center;justify-content:space-between}
+.p3-keys{display:flex;gap:2px;align-items:flex-end}
+.p3-key{width:4px;height:11px;border-radius:1.5px 1.5px 1px 1px;background:#E4002B;position:relative}
+.p3-key::after{content:'';position:absolute;bottom:1.5px;left:50%;transform:translateX(-50%);width:7px;height:3px;border-radius:1px;background:#E4002B}
+.p3-word{font-size:9px;font-weight:900;letter-spacing:0.12em;color:#0A0A0C;font-family:'Syne',sans-serif}
+.p3-word em{color:#E4002B;font-style:normal}
+.p3-av{width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#5c0012,#E4002B);display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#fff;font-family:'Syne',sans-serif}
+.p3-body{flex:1;padding:8px 8px 0;background:#F4F4F6}
+.p3-hero{border-radius:12px;padding:10px 10px 8px;background:linear-gradient(135deg,#5c0012 0%,#99001e 40%,#E4002B 80%,#ff3352 100%);margin-bottom:8px;position:relative;overflow:hidden}
+.p3-hl{font-size:4px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px}
+.p3-ham{font-size:15px;font-weight:600;color:#fff;font-family:'JetBrains Mono',monospace;line-height:1}
+.p3-ham span{font-size:8px;opacity:0.4;font-weight:400}
+.p3-hsub{font-size:4px;color:rgba(255,255,255,0.35);margin-bottom:6px}
+.p3-hstats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid rgba(255,255,255,0.12);padding-top:6px;gap:4px}
+.p3-hsv{font-size:6px;font-weight:600;color:#fff;font-family:'JetBrains Mono',monospace}
+.p3-hsl{font-size:3.5px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em}
+.p3-qrow{display:flex;gap:5px;padding:0 0 7px}
+.p3-qico{width:26px;height:26px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.p3-qlbl{font-size:3.5px;font-weight:600;color:rgba(10,10,12,0.45);text-align:center;margin-top:2px}
+.p3-card{background:#fff;border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,0,0.07)}
+.p3-tx{display:flex;align-items:center;gap:5px;padding:5px 7px;border-bottom:1px solid rgba(0,0,0,0.05)}
+.p3-tx:last-child{border-bottom:none}
+.p3-txi{width:16px;height:16px;border-radius:6px;flex-shrink:0}
+.p3-txn{font-size:5px;font-weight:600;color:#0A0A0C;flex:1}
+.p3-txm{font-size:3.5px;color:rgba(10,10,12,0.3)}
+.p3-txa{font-size:5px;font-weight:600}
+.p3-bottom{height:30px;background:#fff;border-top:1px solid rgba(0,0,0,0.07);display:flex;align-items:center}
+.p3-nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:2px 0}
+.p3-nb svg{width:10px;height:10px}
+.p3-nb span{font-size:3.5px;text-transform:uppercase;letter-spacing:0.04em}
+
+/* ── Card body ─────────────────────────────────────────────── */
+.card-body{padding:24px 24px 28px;flex:1;display:flex;flex-direction:column}
+.card-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:20px;
+  font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+  margin-bottom:14px;width:fit-content;
+}
+.tag-1{background:rgba(34,197,94,0.10);color:#22c55e;border:1px solid rgba(34,197,94,0.2)}
+.tag-2{background:rgba(96,165,250,0.10);color:#60a5fa;border:1px solid rgba(96,165,250,0.2)}
+.tag-3{background:rgba(228,0,43,0.10);color:#E4002B;border:1px solid rgba(228,0,43,0.2)}
+.card-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;letter-spacing:-0.01em}
+.card-desc{font-size:14px;color:var(--muted);line-height:1.6;flex:1;margin-bottom:22px}
+.card-features{list-style:none;margin-bottom:24px;display:flex;flex-direction:column;gap:6px}
+.card-features li{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--dim);font-weight:500;
+}
+.card-features li::before{
+  content:'';width:4px;height:4px;border-radius:50%;flex-shrink:0;
+}
+.feat-1 li::before{background:#22c55e}
+.feat-2 li::before{background:#60a5fa}
+.feat-3 li::before{background:#E4002B}
+.card-cta{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px 20px;border-radius:12px;
+  font-size:14px;font-weight:700;text-decoration:none;
+  transition:all 0.18s;letter-spacing:0.01em;
+}
+.cta-1{background:#22c55e;color:#000;box-shadow:0 4px 20px rgba(34,197,94,0.25)}
+.cta-1:hover{background:#16a34a;transform:translateY(-1px);box-shadow:0 8px 28px rgba(34,197,94,0.3)}
+.cta-2{background:#1d4ed8;color:#fff;box-shadow:0 4px 20px rgba(29,78,216,0.25)}
+.cta-2:hover{background:#1e40af;transform:translateY(-1px);box-shadow:0 8px 28px rgba(29,78,216,0.3)}
+.cta-3{background:#E4002B;color:#fff;box-shadow:0 4px 20px rgba(228,0,43,0.25)}
+.cta-3:hover{background:#B8001F;transform:translateY(-1px);box-shadow:0 8px 28px rgba(228,0,43,0.3)}
+.cta-arrow{transition:transform 0.18s}
+.card-cta:hover .cta-arrow{transform:translateX(3px)}
+
+/* ── Built with section ────────────────────────────────────── */
+.built-with{
+  position:relative;z-index:1;
+  max-width:900px;margin:0 auto;padding:0 40px 100px;
+  text-align:center;
+}
+.bw-label{
+  font-size:11px;font-weight:700;color:var(--dim);
+  text-transform:uppercase;letter-spacing:0.14em;margin-bottom:32px;
+}
+.bw-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.chip{
+  padding:8px 18px;border-radius:20px;
+  background:var(--bg3);border:1px solid var(--border);
+  font-size:13px;font-weight:500;color:var(--muted);
+  transition:border-color 0.15s,color 0.15s;
+}
+.chip:hover{border-color:rgba(34,197,94,0.3);color:var(--green)}
+
+/* ── Footer ────────────────────────────────────────────────── */
+footer{
+  position:relative;z-index:1;
+  text-align:center;padding:32px 40px;
+  border-top:1px solid var(--border);
+}
+footer p{font-size:13px;color:var(--dim)}
+footer a{color:var(--green);text-decoration:none;font-weight:500}
+footer a:hover{text-decoration:underline}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media(max-width:768px){
+  nav{padding:16px 20px}
+  .hero{padding:120px 20px 60px}
+  .hero-title{font-size:36px}
+  .hero-sub{font-size:16px}
+  .hero-meta{gap:20px}
+  .hero-divider{display:none}
+  .demos{padding:0 20px 60px}
+  .built-with{padding:0 20px 60px}
+  .hero-stat-n{font-size:22px}
+}
+
+/* ── Animate on load ────────────────────────────────────────── */
+.fade-up{opacity:0;transform:translateY(24px);animation:fadeUp 0.6s ease forwards}
+.fade-up:nth-child(1){animation-delay:0.1s}
+.fade-up:nth-child(2){animation-delay:0.2s}
+.fade-up:nth-child(3){animation-delay:0.3s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.hero-eyebrow{animation:fadeUp 0.5s ease 0.05s both}
+.hero-title{animation:fadeUp 0.6s ease 0.15s both}
+.hero-sub{animation:fadeUp 0.6s ease 0.25s both}
+.hero-meta{animation:fadeUp 0.6s ease 0.35s both}
+</style>
+</head>
+<body>
+
+<div class="top-glow"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+    </div>
+    <div class="nav-brand">Health<span>Currency</span></div>
+  </div>
+  <div class="nav-badge">POC · 2026</div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-eyebrow">Interactive prototype showcase</div>
+  <h1 class="hero-title">
+    Rewarding the<br>
+    <span class="accent">sustainable commute</span>
+  </h1>
+  <p class="hero-sub">
+    A fintech proof of concept built for institutions — employees earn Health Points for cycling, running and walking to work. Points are spent at partner merchants, transferred to family, or redeemed for vouchers.
+  </p>
+  <div class="hero-meta">
+    <div class="hero-stat">
+      <div class="hero-stat-n">39<span>+</span></div>
+      <div class="hero-stat-l">API endpoints</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-stat-n">3</div>
+      <div class="hero-stat-l">UI themes</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-stat-n">4</div>
+      <div class="hero-stat-l">User portals</div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat">
+      <div class="hero-stat-n">days</div>
+      <div class="hero-stat-l">To build</div>
+    </div>
+  </div>
+</section>
+
+<!-- Demo cards -->
+<section class="demos">
+  <div class="section-label">
+    <h2>Choose a design to explore</h2>
+  </div>
+  <div class="cards">
+
+    <!-- Card 1: Original -->
+    <div class="card card-1">
+      <div class="card-preview" style="background:linear-gradient(180deg,#0d1018 0%,#0f1117 100%)">
+        <div class="phone-frame">
+          <div class="phone-screen preview-original">
+            <div class="p1-nav">
+              <div class="p1-dot"></div>
+              <div style="width:2px;height:2px;border-radius:50%;background:#22c55e;opacity:0.5"></div>
+              <div style="width:2px;height:2px;border-radius:50%;background:#22c55e;opacity:0.3"></div>
+              <div class="p1-logo" style="margin-left:4px">Health<span>C</span></div>
+            </div>
+            <div class="p1-body">
+              <div class="p1-lbl">Thursday, 19 March</div>
+              <div class="p1-heading">Good morning, alice</div>
+              <div class="p1-card">
+                <div class="p1-bal-lbl">Health Points Balance</div>
+                <div class="p1-bal">2,840<span> HP</span></div>
+                <div class="p1-gbp">≈ £14.20</div>
+                <div class="p1-stats">
+                  <div><div class="p1-stat-v" style="color:#22c55e">640 HP</div><div class="p1-stat-l">Earned</div></div>
+                  <div><div class="p1-stat-v" style="color:#a3974a">3.2 kg</div><div class="p1-stat-l">CO₂</div></div>
+                  <div><div class="p1-stat-v" style="color:#facc15">£3.20</div><div class="p1-stat-l">Value</div></div>
+                </div>
+              </div>
+              <div class="p1-txlist">
+                <div class="p1-tx"><div class="p1-txi" style="background:linear-gradient(135deg,#064e3b,#059669)"></div><div><div class="p1-txn">Ride commute</div><div class="p1-txm">Today · 8.4km</div></div><div class="p1-txa" style="color:#22c55e">+160</div></div>
+                <div class="p1-tx"><div class="p1-txi" style="background:linear-gradient(135deg,#7c1d1d,#991b1b)"></div><div><div class="p1-txn">Peloton Café</div><div class="p1-txm">Yesterday</div></div><div class="p1-txa" style="color:rgba(255,255,255,0.4)">-200</div></div>
+                <div class="p1-tx"><div class="p1-txi" style="background:linear-gradient(135deg,#064e3b,#059669)"></div><div><div class="p1-txn">Run commute</div><div class="p1-txm">Tue</div></div><div class="p1-txa" style="color:#22c55e">+130</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag tag-1">
+          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/></svg>
+          Original
+        </div>
+        <div class="card-title">Dark Green Theme</div>
+        <div class="card-desc">The base design — deep charcoal surfaces with green Health Points accent. Desktop sidebar navigation with full Strava integration and admin dashboard.</div>
+        <ul class="card-features feat-1">
+          <li>Consumer app + merchant portal</li>
+          <li>Admin analytics dashboard</li>
+          <li>Desktop sidebar navigation</li>
+          <li>HP chart + leaderboard</li>
+        </ul>
+        <a href="healthcurrency-demo.html" class="card-cta cta-1" target="_blank">
+          View demo
+          <svg class="cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 2: Revolut -->
+    <div class="card card-2">
+      <div class="card-preview" style="background:linear-gradient(180deg,#080A0F 0%,#0A0B0F 100%)">
+        <div class="phone-frame">
+          <div class="phone-screen preview-revolut">
+            <div class="p2-status">
+              <span class="p2-time">9:41</span>
+              <div style="display:flex;gap:3px;align-items:center">
+                <div style="width:8px;height:5px;background:rgba(255,255,255,0.5);border-radius:1px"></div>
+                <div style="width:3px;height:5px;background:rgba(255,255,255,0.3);border-radius:1px"></div>
+              </div>
+            </div>
+            <div class="p2-body">
+              <div class="p2-hdr">
+                <div class="p2-name">alice.chen</div>
+                <div class="p2-av">AC</div>
+              </div>
+              <div class="p2-hero">
+                <div class="p2-hl">Health Points Balance</div>
+                <div class="p2-ham">2,840<span> HP</span></div>
+                <div class="p2-hsub">≈ £14.20 · Updated just now</div>
+                <div class="p2-hstats">
+                  <div><div class="p2-hsv" style="color:#6ee7b7">640</div><div class="p2-hsl">Earned</div></div>
+                  <div><div class="p2-hsv" style="color:#22d3ee">3.2kg</div><div class="p2-hsl">CO₂</div></div>
+                  <div><div class="p2-hsv">18</div><div class="p2-hsl">Trips</div></div>
+                </div>
+              </div>
+              <div class="p2-qrow">
+                <div><div class="p2-qico" style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8)">💳</div><div class="p2-qlbl">Pay</div></div>
+                <div><div class="p2-qico" style="background:linear-gradient(135deg,#0d3030,#0f766e)">🎁</div><div class="p2-qlbl">Voucher</div></div>
+                <div><div class="p2-qico" style="background:linear-gradient(135deg,#0f0b3a,#3730a3)">↗</div><div class="p2-qlbl">Send</div></div>
+                <div><div class="p2-qico" style="background:linear-gradient(135deg,#003d26,#059669)">📊</div><div class="p2-qlbl">Activity</div></div>
+              </div>
+              <div class="p2-strava">
+                <div class="p2-sdot"></div>
+                <div class="p2-stext">Strava connected · LIVE</div>
+              </div>
+            </div>
+            <div class="p2-bottom">
+              <div class="p2-nb"><svg viewBox="0 0 24 24" stroke="#60a5fa" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span style="color:#60a5fa">Home</span></div>
+              <div class="p2-nb"><svg viewBox="0 0 24 24" stroke="rgba(255,255,255,0.25)" fill="none" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span style="color:rgba(255,255,255,0.25)">Activity</span></div>
+              <div class="p2-nb"><svg viewBox="0 0 24 24" stroke="rgba(255,255,255,0.25)" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span style="color:rgba(255,255,255,0.25)">Pay</span></div>
+              <div class="p2-nb"><svg viewBox="0 0 24 24" stroke="rgba(255,255,255,0.25)" fill="none" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span style="color:rgba(255,255,255,0.25)">Admin</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag tag-2">
+          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Revolut-style
+        </div>
+        <div class="card-title">Dark Navy Theme</div>
+        <div class="card-desc">Revolut-inspired mobile-first design. Gradient hero card sweeping violet to cyan, bottom tab navigation, circular icon tiles, and a live QR payment sheet.</div>
+        <ul class="card-features feat-2">
+          <li>Phone frame on desktop</li>
+          <li>Gradient hero balance card</li>
+          <li>Bottom tab navigation</li>
+          <li>Animated QR countdown</li>
+        </ul>
+        <a href="revolut.html" class="card-cta cta-2" target="_blank">
+          View demo
+          <svg class="cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 3: UBS -->
+    <div class="card card-3">
+      <div class="card-preview" style="background:linear-gradient(180deg,#D8D8DC 0%,#E0E0E4 100%)">
+        <div class="phone-frame" style="border-color:rgba(0,0,0,0.12)">
+          <div class="phone-screen preview-ubs">
+            <div class="p3-hdr">
+              <div style="display:flex;align-items:center;gap:5px">
+                <div class="p3-keys">
+                  <div class="p3-key"></div>
+                  <div class="p3-key"></div>
+                  <div class="p3-key"></div>
+                </div>
+                <div class="p3-word">UB<em>S</em></div>
+              </div>
+              <div class="p3-av">AC</div>
+            </div>
+            <div class="p3-body">
+              <div class="p3-hero">
+                <div class="p3-hl">Health Points Balance</div>
+                <div class="p3-ham">2,840<span> HP</span></div>
+                <div class="p3-hsub">≈ £14.20 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="23424f4a40460d404b464d635641500d404c4e">[email&#160;protected]</a></div>
+                <div class="p3-hstats">
+                  <div><div class="p3-hsv" style="color:#6ee7b7">640 HP</div><div class="p3-hsl">Earned</div></div>
+                  <div><div class="p3-hsv">3.2 kg</div><div class="p3-hsl">CO₂</div></div>
+                  <div><div class="p3-hsv">18</div><div class="p3-hsl">Trips</div></div>
+                </div>
+              </div>
+              <div class="p3-qrow">
+                <div><div class="p3-qico" style="background:linear-gradient(135deg,#5c0012,#E4002B)">💳</div><div class="p3-qlbl">Pay</div></div>
+                <div><div class="p3-qico" style="background:linear-gradient(135deg,#003d40,#00838f)">🎁</div><div class="p3-qlbl">Voucher</div></div>
+                <div><div class="p3-qico" style="background:linear-gradient(135deg,#002d5c,#0057B8)">↗</div><div class="p3-qlbl">Transfer</div></div>
+                <div><div class="p3-qico" style="background:linear-gradient(135deg,#004d33,#00875A)">📊</div><div class="p3-qlbl">Activity</div></div>
+              </div>
+              <div class="p3-card">
+                <div class="p3-tx"><div class="p3-txi" style="background:linear-gradient(135deg,#004d33,#00875A)"></div><div><div class="p3-txn">Ride commute</div><div class="p3-txm">Today · 8.4km</div></div><div class="p3-txa" style="color:#00875A">+160</div></div>
+                <div class="p3-tx"><div class="p3-txi" style="background:linear-gradient(135deg,#5c0012,#E4002B)"></div><div><div class="p3-txn">Peloton Café</div><div class="p3-txm">Yesterday</div></div><div class="p3-txa" style="color:rgba(10,10,12,0.4)">-200</div></div>
+                <div class="p3-tx"><div class="p3-txi" style="background:linear-gradient(135deg,#004d33,#00875A)"></div><div><div class="p3-txn">Run commute</div><div class="p3-txm">Tue</div></div><div class="p3-txa" style="color:#00875A">+130</div></div>
+              </div>
+            </div>
+            <div class="p3-bottom">
+              <div class="p3-nb"><svg viewBox="0 0 24 24" stroke="#E4002B" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span style="color:#E4002B">Home</span></div>
+              <div class="p3-nb"><svg viewBox="0 0 24 24" stroke="rgba(10,10,12,0.25)" fill="none" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span style="color:rgba(10,10,12,0.25)">Activity</span></div>
+              <div class="p3-nb"><svg viewBox="0 0 24 24" stroke="rgba(10,10,12,0.25)" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span style="color:rgba(10,10,12,0.25)">Pay</span></div>
+              <div class="p3-nb"><svg viewBox="0 0 24 24" stroke="rgba(10,10,12,0.25)" fill="none" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span style="color:rgba(10,10,12,0.25)">Admin</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag tag-3">
+          <svg width="9" height="7" viewBox="0 0 57 38" fill="#E4002B"><rect x="3" y="0" width="12" height="24" rx="4"/><rect x="0" y="24" width="18" height="8" rx="3"/><rect x="21" y="0" width="12" height="24" rx="4"/><rect x="18" y="24" width="18" height="8" rx="3"/><rect x="39" y="0" width="12" height="24" rx="4"/><rect x="36" y="24" width="18" height="8" rx="3"/></svg>
+          White Theme
+        </div>
+        <div class="card-title">White Theme</div>
+        <div class="card-desc">UBS-inspired brand identity — white surfaces, crimson gradient hero card, and the iconic three keys motif. Clean Swiss banking aesthetic with corporate precision.</div>
+        <ul class="card-features feat-3">
+          <li>Red gradient balance card</li>
+          <li>White corporate surfaces</li>
+          <li>UBS colour system throughout</li>
+        </ul>
+        <a href="ubs.html" class="card-cta cta-3" target="_blank">
+          View demo
+          <svg class="cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Built with -->
+<section class="built-with">
+  <div class="bw-label">Built with</div>
+  <div class="bw-chips">
+    <div class="chip">Node.js + TypeScript</div>
+    <div class="chip">PostgreSQL + PostGIS</div>
+    <div class="chip">Redis</div>
+    <div class="chip">React + Vite</div>
+    <div class="chip">Strava API</div>
+    <div class="chip">Docker</div>
+    <div class="chip">Claude AI</div>
+    <div class="chip">JWT Auth</div>
+    <div class="chip">QR Payments</div>
+    <div class="chip">London Geofence</div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>Health Currency POC &nbsp;·&nbsp; Built by <a href="https://www.linkedin.com/in/jeevendra-singh-8a817618/" target="_blank">Jeevendra Singh</a> &nbsp;·&nbsp; 2026</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Health Currency — UBS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:      #E4002B;
+  --red-dark: #B8001F;
+  --red-mid:  #CC0026;
+  --red-dim:  rgba(228,0,43,0.08);
+  --red-dim2: rgba(228,0,43,0.14);
+  --red-glow: rgba(228,0,43,0.22);
+
+  --white:  #FFFFFF;
+  --bg:     #F4F4F6;
+  --bg2:    #FFFFFF;
+  --bg3:    #F0F0F2;
+  --bg4:    #E8E8EC;
+
+  --border:  rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.12);
+
+  --text:  #0A0A0C;
+  --text2: rgba(10,10,12,0.55);
+  --text3: rgba(10,10,12,0.35);
+  --text4: rgba(10,10,12,0.20);
+
+  --green:  #00875A;
+  --g-dim:  rgba(0,135,90,0.10);
+  --blue:   #0057B8;
+  --b-dim:  rgba(0,87,184,0.10);
+
+  /* Hero gradient — UBS red, deep and rich */
+  --grad-hero: linear-gradient(135deg, #5c0012 0%, #99001e 30%, #E4002B 70%, #ff3352 100%);
+  --grad-earn: linear-gradient(135deg, #004d33 0%, #00875A 100%);
+  --grad-blue: linear-gradient(135deg, #002d5c 0%, #0057B8 100%);
+  --grad-teal: linear-gradient(135deg, #003d40 0%, #00838f 100%);
+  --grad-gold: linear-gradient(135deg, #3d2800 0%, #b07d00 100%);
+  --grad-red2: linear-gradient(135deg, #5c0012 0%, #E4002B 100%);
+  --grad-grey: linear-gradient(135deg, #2a2a30 0%, #4a4a54 100%);
+  --grad-indigo: linear-gradient(135deg, #1a1060 0%, #3730a3 100%);
+}
+
+html,body{
+  height:100%;
+  background:#E8E8EC;
+  color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+
+/* ── Phone frame ─────────────────────────────────────────────── */
+.app{
+  display:flex;flex-direction:column;
+  height:100vh;max-width:420px;
+  margin:0 auto;position:relative;
+  background:var(--bg);
+}
+@media(min-width:600px){
+  body{display:flex;align-items:center;justify-content:center;background:#D0D0D6}
+  .app{
+    border-radius:44px;overflow:hidden;
+    box-shadow:0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06);
+  }
+}
+
+/* ── Status bar ──────────────────────────────────────────────── */
+.status-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px 8px;flex-shrink:0;background:var(--bg2);
+  border-bottom:1px solid var(--border);
+}
+.s-time{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--text)}
+
+/* ── Content ─────────────────────────────────────────────────── */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:82px}
+.content::-webkit-scrollbar{display:none}
+
+/* ── Pages ───────────────────────────────────────────────────── */
+.page{display:none;animation:fadeUp 0.26s ease forwards}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Bottom nav ──────────────────────────────────────────────── */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  z-index:50;
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 0;cursor:pointer;transition:all 0.18s;
+}
+.nav-btn svg{width:22px;height:22px;stroke:var(--text3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:all 0.18s}
+.nav-btn span{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.04em;text-transform:uppercase;transition:color 0.18s}
+.nav-btn.active svg{stroke:var(--red)}
+.nav-btn.active span{color:var(--red)}
+.nav-pip{width:4px;height:4px;border-radius:50%;background:var(--red);margin:0 auto;opacity:0;transition:opacity 0.18s}
+.nav-btn.active .nav-pip{opacity:1}
+
+/* ── UBS Header ──────────────────────────────────────────────── */
+.ubs-hdr{
+  background:var(--bg2);
+  padding:14px 20px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.ubs-brand{display:flex;align-items:center;gap:12px}
+
+/* Three Keys SVG logo */
+.keys-logo{display:flex;gap:5px;align-items:flex-end}
+.key-shape{position:relative;width:9px;height:22px}
+.key-shape .shaft{position:absolute;top:0;left:50%;transform:translateX(-50%);width:9px;height:16px;background:var(--red);border-radius:3px 3px 2px 2px}
+.key-shape .bow{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:15px;height:8px;background:var(--red);border-radius:2px}
+.key-shape .bow::after{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%);width:7px;height:4px;background:var(--bg2);border-radius:1px}
+
+.ubs-wordmark{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;letter-spacing:0.18em;color:var(--text);line-height:1}
+.ubs-wordmark .s{color:var(--red)}
+.ubs-sub{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-top:1px}
+
+.ubs-avatar{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--grad-hero);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;
+  color:#fff;cursor:pointer;letter-spacing:0.05em;
+  box-shadow:0 4px 12px var(--red-glow);
+}
+
+/* ── Page title block ────────────────────────────────────────── */
+.pg-title{padding:20px 20px 0}
+.pg-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px}
+.pg-heading{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;letter-spacing:0.04em;color:var(--text)}
+
+/* ── Hero card ───────────────────────────────────────────────── */
+.hero-card{
+  margin:16px;
+  background:var(--grad-hero);
+  border-radius:22px;padding:24px 22px 20px;
+  position:relative;overflow:hidden;
+  box-shadow:0 12px 40px rgba(228,0,43,0.30), 0 2px 8px rgba(0,0,0,0.08);
+}
+.hero-keys-bg{
+  position:absolute;top:-10px;right:-12px;
+  opacity:0.10;pointer-events:none;
+}
+.hero-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:10px;position:relative;z-index:1}
+.hero-amount{
+  font-family:'IBM Plex Mono',monospace;font-weight:600;
+  font-size:46px;letter-spacing:-0.02em;line-height:1;
+  color:#fff;position:relative;z-index:1;margin-bottom:4px;
+}
+.hero-amount .u{font-size:22px;font-weight:400;opacity:0.55;margin-left:6px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:20px;position:relative;z-index:1;font-weight:500}
+.hero-stats{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  border-top:1px solid rgba(255,255,255,0.15);
+  padding-top:16px;gap:8px;position:relative;z-index:1;
+}
+.hs-val{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;margin-bottom:3px;color:#fff}
+.hs-lbl{font-size:10px;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+
+/* ── Quick actions ───────────────────────────────────────────── */
+.quick-row{display:flex;gap:8px;padding:0 16px 16px;overflow-x:auto}
+.quick-row::-webkit-scrollbar{display:none}
+.qbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:transform 0.15s}
+.qbtn:active{transform:scale(0.92)}
+.qico{
+  width:54px;height:54px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.10);
+}
+.qico svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.qlbl{font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;letter-spacing:0.02em}
+
+/* ── Strava banner ───────────────────────────────────────────── */
+.strava-bar{
+  margin:0 16px 16px;padding:12px 16px;
+  background:#fff;border:1px solid rgba(0,135,90,0.2);
+  border-radius:12px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.s-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(0,135,90,0.5);flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+
+/* ── Card / list ─────────────────────────────────────────────── */
+.section{margin:0 16px 20px}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--text)}
+.sec-link{font-size:12px;font-weight:600;color:var(--red);cursor:pointer;letter-spacing:0.02em}
+.list-card{background:var(--bg2);border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+
+/* ── Transaction row ─────────────────────────────────────────── */
+.tx-row{display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s}
+.tx-row:last-child{border-bottom:none}
+.tx-row:active{background:var(--bg3)}
+.tx-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tx-ico svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tx-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.tx-meta{font-size:12px;color:var(--text3);font-weight:500}
+.tx-amt{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;text-align:right}
+.tx-bal{font-size:11px;color:var(--text3);text-align:right;margin-top:2px}
+.pos{color:var(--green)}.neg{color:var(--text2)}
+
+/* ── Activity ────────────────────────────────────────────────── */
+.pills-row{display:flex;gap:8px;padding:0 16px 16px;overflow-x:auto}
+.pills-row::-webkit-scrollbar{display:none}
+.pill{
+  flex-shrink:0;padding:10px 14px;border-radius:12px;
+  background:var(--bg2);border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.pill-val{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--text)}
+.pill-lbl{font-size:10px;color:var(--text3);margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em}
+
+.act-row{display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s}
+.act-row:last-child{border-bottom:none}
+.act-row:active{background:var(--bg3)}
+.act-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;position:relative}
+.act-badge{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--green);border:2px solid var(--bg2);display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff}
+
+/* ── Segment control ─────────────────────────────────────────── */
+.segment{display:flex;gap:0;padding:16px 16px 16px}
+.seg-btn{
+  flex:1;padding:9px 8px;font-size:12px;font-weight:700;
+  cursor:pointer;text-align:center;color:var(--text2);
+  background:var(--bg2);border:1px solid var(--border);
+  transition:all 0.15s;letter-spacing:0.04em;text-transform:uppercase;
+  font-family:'IBM Plex Sans',sans-serif;
+}
+.seg-btn:first-child{border-radius:8px 0 0 8px}
+.seg-btn:last-child{border-radius:0 8px 8px 0}
+.seg-btn:not(:first-child){border-left:none}
+.seg-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* ── Merchants ───────────────────────────────────────────────── */
+.merch-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s}
+.merch-row:last-child{border-bottom:none}
+.merch-row:active{background:var(--bg3)}
+.merch-av{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.merch-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.merch-meta{font-size:12px;color:var(--text3);font-weight:500}
+.pay-btn{
+  padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;
+  background:var(--red);color:#fff;border:none;cursor:pointer;
+  transition:background 0.15s;letter-spacing:0.04em;text-transform:uppercase;
+  font-family:'IBM Plex Sans',sans-serif;box-shadow:0 2px 8px var(--red-glow);
+}
+.pay-btn:active{background:var(--red-dark)}
+
+/* ── Vouchers ────────────────────────────────────────────────── */
+.vouch-row{padding:14px 16px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
+.vouch-row:last-child{border-bottom:none}
+.v-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.v-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.v-meta{font-size:12px;color:var(--text3);font-weight:500}
+.v-hp{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--green)}
+.v-gbp{font-size:11px;color:var(--text3);margin-top:1px}
+.v-btn{margin-top:6px;padding:5px 14px;border-radius:6px;font-size:11px;font-weight:700;background:var(--red);color:#fff;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:0.06em}
+
+/* ── Admin ───────────────────────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 16px 0}
+.kpi-tile{border-radius:16px;padding:18px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.kpi-tile::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%);border-radius:50%}
+.k-ico{font-size:22px;margin-bottom:12px}
+.k-val{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;color:#fff}
+.k-lbl{font-size:10px;color:rgba(255,255,255,0.5);margin-top:5px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+
+.chart-card{margin:16px;background:var(--bg2);border-radius:16px;padding:18px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.c-lbl{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;color:var(--text2)}
+.bars{display:flex;align-items:flex-end;gap:3px;height:72px}
+.bar{flex:1;border-radius:3px 3px 0 0;min-height:2px}
+.c-dates{display:flex;justify-content:space-between;margin-top:8px}
+.c-date{font-size:10px;color:var(--text3);font-weight:600;font-family:'IBM Plex Mono',monospace}
+
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{width:22px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text3);flex-shrink:0}
+.lb-av{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900;flex-shrink:0;color:#fff}
+.lb-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.lb-sub{font-size:11px;color:var(--text3);font-weight:500}
+.lb-hp{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--green);flex-shrink:0}
+
+/* ── Settings ────────────────────────────────────────────────── */
+.s-section{margin:0 16px 16px}
+.s-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;padding:0 4px;margin-bottom:8px}
+.s-card{background:var(--bg2);border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.s-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);gap:14px}
+.s-row:last-child{border-bottom:none}
+.s-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.s-name{font-size:14px;font-weight:600;color:var(--text)}
+.s-sub{font-size:12px;color:var(--text3);margin-top:1px;font-weight:500}
+.s-chev svg{width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.toggle{width:44px;height:24px;border-radius:12px;background:var(--red);position:relative;cursor:pointer;flex-shrink:0}
+.t-thumb{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+
+/* ── QR modal / bottom sheet ─────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{
+  background:#fff;border-radius:28px 28px 0 0;
+  padding:6px 24px 40px;width:100%;max-width:420px;
+  border-top:1px solid var(--border);
+  animation:sheetUp 0.32s cubic-bezier(0.22,1,0.36,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,0.12);
+}
+@keyframes sheetUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.sh-handle{width:32px;height:3px;border-radius:2px;background:var(--bg4);margin:12px auto 22px}
+.sh-logorow{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+.sh-ubs{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:0.18em;color:var(--text)}
+.sh-ubs em{color:var(--red);font-style:normal}
+.sh-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-align:center;margin-bottom:4px;letter-spacing:0.03em;color:var(--text)}
+.sh-sub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:22px;font-weight:500}
+.qr-box{width:196px;height:196px;margin:0 auto 18px;background:#fff;border-radius:18px;padding:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(228,0,43,0.15),0 0 0 1px var(--border)}
+.qt-row{text-align:center;margin-bottom:20px}
+.qt-num{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;letter-spacing:-0.02em}
+.tg{color:var(--green)}.to{color:#f97316}.tr{color:var(--red)}
+.qt-lbl{font-size:10px;color:var(--text3);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em}
+.sh-cancel{width:100%;padding:14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.04em}
+
+/* ── Gradient utilities ──────────────────────────────────────── */
+.g-red  {background:var(--grad-red2)}
+.g-earn {background:var(--grad-earn)}
+.g-blue {background:var(--grad-blue)}
+.g-teal {background:var(--grad-teal)}
+.g-gold {background:var(--grad-gold)}
+.g-grey {background:var(--grad-grey)}
+.g-ind  {background:var(--grad-indigo)}
+.g-soft {background:var(--bg3);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- QR Modal -->
+<div class="modal-overlay" id="qrModal" onclick="hoClick(event)">
+  <div class="modal-sheet">
+    <div class="sh-handle"></div>
+    <!-- Mini UBS logo in sheet -->
+    <div class="sh-logorow">
+      <svg width="32" height="20" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="#E4002B"/><circle cx="10" cy="10" r="5" fill="#FFFFFF"/><rect x="7" y="19" width="6" height="28" fill="#E4002B"/><rect x="13" y="24" width="5" height="4" fill="#E4002B"/><rect x="13" y="32" width="5" height="4" fill="#E4002B"/><rect x="13" y="40" width="4" height="3" fill="#E4002B"/><circle cx="34" cy="10" r="10" fill="#E4002B"/><circle cx="34" cy="10" r="5" fill="#FFFFFF"/><rect x="31" y="19" width="6" height="28" fill="#E4002B"/><rect x="37" y="24" width="5" height="4" fill="#E4002B"/><rect x="37" y="32" width="5" height="4" fill="#E4002B"/><rect x="37" y="40" width="4" height="3" fill="#E4002B"/><circle cx="58" cy="10" r="10" fill="#E4002B"/><circle cx="58" cy="10" r="5" fill="#FFFFFF"/><rect x="55" y="19" width="6" height="28" fill="#E4002B"/><rect x="61" y="24" width="5" height="4" fill="#E4002B"/><rect x="61" y="32" width="5" height="4" fill="#E4002B"/><rect x="61" y="40" width="4" height="3" fill="#E4002B"/></svg>
+      <div class="sh-ubs">UB<em>S</em></div>
+    </div>
+    <div class="sh-title">Pay with Health Points</div>
+    <div class="sh-sub">Show this code to the merchant to complete payment</div>
+    <div class="qr-box">
+      <svg viewBox="0 0 21 21" width="172" height="172" xmlns="http://www.w3.org/2000/svg">
+        <rect width="21" height="21" fill="white"/>
+        <rect x="1" y="1" width="7" height="7" fill="#0A0A0C" rx="1"/>
+        <rect x="2" y="2" width="5" height="5" fill="white"/>
+        <rect x="3" y="3" width="3" height="3" fill="#0A0A0C" rx="0.3"/>
+        <rect x="13" y="1" width="7" height="7" fill="#0A0A0C" rx="1"/>
+        <rect x="14" y="2" width="5" height="5" fill="white"/>
+        <rect x="15" y="3" width="3" height="3" fill="#0A0A0C" rx="0.3"/>
+        <rect x="1" y="13" width="7" height="7" fill="#0A0A0C" rx="1"/>
+        <rect x="2" y="14" width="5" height="5" fill="white"/>
+        <rect x="3" y="15" width="3" height="3" fill="#0A0A0C" rx="0.3"/>
+        <rect x="9" y="1" width="1" height="2" fill="#0A0A0C"/>
+        <rect x="11" y="1" width="2" height="1" fill="#0A0A0C"/>
+        <rect x="9" y="4" width="3" height="1" fill="#0A0A0C"/>
+        <rect x="11" y="6" width="1" height="2" fill="#0A0A0C"/>
+        <rect x="9" y="7" width="2" height="1" fill="#0A0A0C"/>
+        <rect x="1" y="9" width="3" height="1" fill="#0A0A0C"/>
+        <rect x="5" y="9" width="2" height="2" fill="#0A0A0C"/>
+        <rect x="9" y="9" width="1" height="1" fill="#0A0A0C"/>
+        <rect x="11" y="9" width="3" height="1" fill="#0A0A0C"/>
+        <rect x="15" y="9" width="3" height="2" fill="#0A0A0C"/>
+        <rect x="19" y="9" width="1" height="1" fill="#0A0A0C"/>
+        <rect x="1" y="11" width="1" height="2" fill="#0A0A0C"/>
+        <rect x="3" y="11" width="3" height="1" fill="#0A0A0C"/>
+        <rect x="7" y="11" width="1" height="2" fill="#0A0A0C"/>
+        <rect x="9" y="11" width="4" height="2" fill="#0A0A0C"/>
+        <rect x="14" y="11" width="1" height="3" fill="#0A0A0C"/>
+        <rect x="17" y="11" width="2" height="2" fill="#0A0A0C"/>
+        <rect x="9" y="13" width="1" height="4" fill="#0A0A0C"/>
+        <rect x="11" y="13" width="3" height="1" fill="#0A0A0C"/>
+        <rect x="13" y="15" width="2" height="2" fill="#0A0A0C"/>
+        <rect x="11" y="16" width="1" height="2" fill="#0A0A0C"/>
+        <rect x="16" y="13" width="2" height="3" fill="#0A0A0C"/>
+        <rect x="19" y="14" width="1" height="4" fill="#0A0A0C"/>
+        <rect x="9" y="18" width="3" height="2" fill="#0A0A0C"/>
+        <rect x="13" y="18" width="1" height="2" fill="#0A0A0C"/>
+        <rect x="15" y="17" width="1" height="2" fill="#0A0A0C"/>
+        <rect x="17" y="18" width="1" height="1" fill="#0A0A0C"/>
+      </svg>
+    </div>
+    <div class="qt-row">
+      <div class="qt-num tg" id="qrTimer">1:58</div>
+      <div class="qt-lbl">Token expires in</div>
+    </div>
+    <button class="sh-cancel" onclick="closeQR()">Cancel</button>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="s-time" id="stTime">9:41</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="#0A0A0C" opacity="0.5"><rect x="0" y="4" width="3" height="7" rx="0.5"/><rect x="4" y="2.5" width="3" height="8.5" rx="0.5"/><rect x="8" y="1" width="3" height="10" rx="0.5"/><rect x="12" y="0" width="3" height="11" rx="0.5"/></svg>
+      <svg width="22" height="11" viewBox="0 0 22 11" fill="none"><rect x="0.5" y="0.5" width="18" height="10" rx="2.5" stroke="#0A0A0C" stroke-opacity="0.3"/><rect x="2" y="2" width="12" height="7" rx="1.5" fill="#0A0A0C" opacity="0.8"/><path d="M20 3.5v4a2 2 0 0 0 0-4z" fill="#0A0A0C" opacity="0.4"/></svg>
+    </div>
+  </div>
+
+  <div class="content" id="mc">
+
+    <!-- ── HOME ────────────────────────────────────────────────── -->
+    <div class="page active" id="page-home">
+      <div class="ubs-hdr">
+        <div class="ubs-brand">
+          <!-- Three Keys logo -->
+          <svg width="38" height="28" viewBox="0 0 68 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#E4002B"/><circle cx="10" cy="10" r="5" fill="#FFFFFF"/><rect x="7" y="19" width="6" height="28" fill="#E4002B"/><rect x="13" y="24" width="5" height="4" fill="#E4002B"/><rect x="13" y="32" width="5" height="4" fill="#E4002B"/><rect x="13" y="40" width="4" height="3" fill="#E4002B"/><circle cx="34" cy="10" r="10" fill="#E4002B"/><circle cx="34" cy="10" r="5" fill="#FFFFFF"/><rect x="31" y="19" width="6" height="28" fill="#E4002B"/><rect x="37" y="24" width="5" height="4" fill="#E4002B"/><rect x="37" y="32" width="5" height="4" fill="#E4002B"/><rect x="37" y="40" width="4" height="3" fill="#E4002B"/><circle cx="58" cy="10" r="10" fill="#E4002B"/><circle cx="58" cy="10" r="5" fill="#FFFFFF"/><rect x="55" y="19" width="6" height="28" fill="#E4002B"/><rect x="61" y="24" width="5" height="4" fill="#E4002B"/><rect x="61" y="32" width="5" height="4" fill="#E4002B"/><rect x="61" y="40" width="4" height="3" fill="#E4002B"/></svg>
+          <div>
+            <div class="ubs-wordmark">UB<span class="s">S</span></div>
+            <div class="ubs-sub">Health Currency</div>
+          </div>
+        </div>
+        <div class="ubs-avatar" onclick="showPage('settings')">AC</div>
+      </div>
+
+      <div class="hero-card">
+        <!-- Three keys watermark -->
+        <svg class="hero-keys-bg" width="120" height="90" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="white"/><circle cx="10" cy="10" r="5" fill="rgba(160,0,25,0.7)"/><rect x="7" y="19" width="6" height="28" fill="white"/><rect x="13" y="24" width="5" height="4" fill="white"/><rect x="13" y="32" width="5" height="4" fill="white"/><rect x="13" y="40" width="4" height="3" fill="white"/><circle cx="34" cy="10" r="10" fill="white"/><circle cx="34" cy="10" r="5" fill="rgba(160,0,25,0.7)"/><rect x="31" y="19" width="6" height="28" fill="white"/><rect x="37" y="24" width="5" height="4" fill="white"/><rect x="37" y="32" width="5" height="4" fill="white"/><rect x="37" y="40" width="4" height="3" fill="white"/><circle cx="58" cy="10" r="10" fill="white"/><circle cx="58" cy="10" r="5" fill="rgba(160,0,25,0.7)"/><rect x="55" y="19" width="6" height="28" fill="white"/><rect x="61" y="24" width="5" height="4" fill="white"/><rect x="61" y="32" width="5" height="4" fill="white"/><rect x="61" y="40" width="4" height="3" fill="white"/></svg>
+        <div class="hero-label">Health Points Balance</div>
+        <div class="hero-amount">2,840<span class="u">HP</span></div>
+        <div class="hero-sub">≈ £14.20 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e0818c898385ce8388858ea0958293ce838f8d">[email&#160;protected]</a></div>
+        <div class="hero-stats">
+          <div><div class="hs-val" style="color:#6ee7b7">640 HP</div><div class="hs-lbl">Earned</div></div>
+          <div><div class="hs-val">3.2 kg</div><div class="hs-lbl">CO₂ saved</div></div>
+          <div><div class="hs-val">18</div><div class="hs-lbl">Commutes</div></div>
+        </div>
+      </div>
+
+      <div class="quick-row">
+        <div class="qbtn" onclick="showPage('merchants')"><div class="qico g-red"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><span class="qlbl">Pay</span></div>
+        <div class="qbtn" onclick="showPage('merchants')"><div class="qico g-teal"><svg viewBox="0 0 24 24"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><span class="qlbl">Vouchers</span></div>
+        <div class="qbtn"><div class="qico g-blue"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><span class="qlbl">Transfer</span></div>
+        <div class="qbtn" onclick="showPage('activity')"><div class="qico g-earn"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span class="qlbl">Activity</span></div>
+        <div class="qbtn" onclick="showPage('admin')"><div class="qico g-ind"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><span class="qlbl">Analytics</span></div>
+      </div>
+
+      <div class="strava-bar">
+        <div class="s-dot"></div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--green)">Strava connected</div><div style="font-size:11px;color:rgba(0,135,90,0.55);font-weight:500;margin-top:1px">Syncing commutes automatically</div></div>
+        <div style="margin-left:auto;font-size:10px;font-weight:700;color:var(--green);font-family:'IBM Plex Mono',monospace;letter-spacing:0.06em">LIVE</div>
+      </div>
+
+      <div class="section">
+        <div class="sec-hdr"><div class="sec-title">Recent</div><span class="sec-link" onclick="showPage('wallet')">View all</span></div>
+        <div class="list-card">
+          <div class="tx-row"><div class="tx-ico g-earn"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">Ride commute</div><div class="tx-meta">Today · 8.4 km · Broadgate</div></div><div><div class="tx-amt pos">+160 HP</div><div class="tx-bal">2,840 HP</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-red"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">Peloton Café</div><div class="tx-meta">Yesterday · Flat White</div></div><div><div class="tx-amt neg">−200 HP</div><div class="tx-bal">2,680 HP</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-earn"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">Run commute</div><div class="tx-meta">Tue 17 Mar · 5.2 km</div></div><div><div class="tx-amt pos">+130 HP</div><div class="tx-bal">2,880 HP</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-blue"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">From james.chen</div><div class="tx-meta">Mon 16 Mar · Transfer</div></div><div><div class="tx-amt pos">+50 HP</div><div class="tx-bal">2,750 HP</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ACTIVITY ─────────────────────────────────────────────── -->
+    <div class="page" id="page-activity">
+      <div class="ubs-hdr">
+        <div class="ubs-brand">
+          <svg width="28" height="20" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="#E4002B"/><circle cx="10" cy="10" r="5" fill="#FFFFFF"/><rect x="7" y="19" width="6" height="28" fill="#E4002B"/><rect x="13" y="24" width="5" height="4" fill="#E4002B"/><rect x="13" y="32" width="5" height="4" fill="#E4002B"/><rect x="13" y="40" width="4" height="3" fill="#E4002B"/><circle cx="34" cy="10" r="10" fill="#E4002B"/><circle cx="34" cy="10" r="5" fill="#FFFFFF"/><rect x="31" y="19" width="6" height="28" fill="#E4002B"/><rect x="37" y="24" width="5" height="4" fill="#E4002B"/><rect x="37" y="32" width="5" height="4" fill="#E4002B"/><rect x="37" y="40" width="4" height="3" fill="#E4002B"/><circle cx="58" cy="10" r="10" fill="#E4002B"/><circle cx="58" cy="10" r="5" fill="#FFFFFF"/><rect x="55" y="19" width="6" height="28" fill="#E4002B"/><rect x="61" y="24" width="5" height="4" fill="#E4002B"/><rect x="61" y="32" width="5" height="4" fill="#E4002B"/><rect x="61" y="40" width="4" height="3" fill="#E4002B"/></svg>
+          <div class="pg-heading" style="padding:0">Activity</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.04em">March 2026</div>
+      </div>
+      <div class="pills-row">
+        <div class="pill"><div class="pill-val" style="color:var(--green)">640 HP</div><div class="pill-lbl">Earned</div></div>
+        <div class="pill"><div class="pill-val">18</div><div class="pill-lbl">Trips</div></div>
+        <div class="pill"><div class="pill-val" style="color:var(--blue)">3.2 kg</div><div class="pill-lbl">CO₂</div></div>
+        <div class="pill"><div class="pill-val">128 km</div><div class="pill-lbl">Total</div></div>
+        <div class="pill"><div class="pill-val" style="color:var(--red)">14</div><div class="pill-lbl">Days</div></div>
+      </div>
+      <div class="section" style="margin-top:0">
+        <div class="list-card">
+          <div class="act-row"><div class="act-ico g-blue">🚴<div class="act-badge">✓</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">Ride · 8.4 km</div><div style="font-size:12px;color:var(--text3);font-weight:500">Today 08:32 · 28 min · 18 km/h</div></div><div style="text-align:right"><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--green)">+160 HP</div><div style="font-size:11px;color:var(--text3);margin-top:2px">0.042 kg CO₂</div></div></div>
+          <div class="act-row"><div class="act-ico g-red">🏃<div class="act-badge">✓</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">Run · 5.2 km</div><div style="font-size:12px;color:var(--text3);font-weight:500">Tue 17 Mar · 26 min</div></div><div style="text-align:right"><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--green)">+130 HP</div><div style="font-size:11px;color:var(--text3);margin-top:2px">0.026 kg CO₂</div></div></div>
+          <div class="act-row"><div class="act-ico g-blue">🚴<div class="act-badge">✓</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">Ride · 8.1 km</div><div style="font-size:12px;color:var(--text3);font-weight:500">Mon 16 Mar · 27 min</div></div><div style="text-align:right"><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--green)">+154 HP</div><div style="font-size:11px;color:var(--text3);margin-top:2px">0.041 kg CO₂</div></div></div>
+          <div class="act-row"><div class="act-ico g-earn">🚶<div class="act-badge">✓</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">Walk · 2.8 km</div><div style="font-size:12px;color:var(--text3);font-weight:500">Fri 13 Mar · 34 min</div></div><div style="text-align:right"><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--green)">+42 HP</div><div style="font-size:11px;color:var(--text3);margin-top:2px">0.014 kg CO₂</div></div></div>
+          <div class="act-row"><div class="act-ico g-blue">🚴<div class="act-badge">✓</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">Ride · 8.5 km</div><div style="font-size:12px;color:var(--text3);font-weight:500">Thu 12 Mar · 29 min</div></div><div style="text-align:right"><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--green)">+162 HP</div><div style="font-size:11px;color:var(--text3);margin-top:2px">0.043 kg CO₂</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MERCHANTS ────────────────────────────────────────────── -->
+    <div class="page" id="page-merchants">
+      <div class="ubs-hdr">
+        <div class="ubs-brand">
+          <svg width="28" height="20" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="#E4002B"/><circle cx="10" cy="10" r="5" fill="#FFFFFF"/><rect x="7" y="19" width="6" height="28" fill="#E4002B"/><rect x="13" y="24" width="5" height="4" fill="#E4002B"/><rect x="13" y="32" width="5" height="4" fill="#E4002B"/><rect x="13" y="40" width="4" height="3" fill="#E4002B"/><circle cx="34" cy="10" r="10" fill="#E4002B"/><circle cx="34" cy="10" r="5" fill="#FFFFFF"/><rect x="31" y="19" width="6" height="28" fill="#E4002B"/><rect x="37" y="24" width="5" height="4" fill="#E4002B"/><rect x="37" y="32" width="5" height="4" fill="#E4002B"/><rect x="37" y="40" width="4" height="3" fill="#E4002B"/><circle cx="58" cy="10" r="10" fill="#E4002B"/><circle cx="58" cy="10" r="5" fill="#FFFFFF"/><rect x="55" y="19" width="6" height="28" fill="#E4002B"/><rect x="61" y="24" width="5" height="4" fill="#E4002B"/><rect x="61" y="32" width="5" height="4" fill="#E4002B"/><rect x="61" y="40" width="4" height="3" fill="#E4002B"/></svg>
+          <div class="pg-heading" style="padding:0">Merchants</div>
+        </div>
+      </div>
+      <div class="segment" id="mSeg">
+        <div class="seg-btn active" onclick="sseg(0)">Places</div>
+        <div class="seg-btn" onclick="sseg(1)">Vouchers</div>
+        <div class="seg-btn" onclick="sseg(2)">My Wallet</div>
+      </div>
+      <div id="s0">
+        <div class="section" style="margin-top:0">
+          <div class="list-card">
+            <div class="merch-row"><div class="merch-av g-teal">☕</div><div style="flex:1"><div class="merch-name">The Peloton Café</div><div class="merch-meta">Broadgate Circle · 9 items</div></div><button class="pay-btn" onclick="openQR()">Pay</button></div>
+            <div class="merch-row"><div class="merch-av g-ind">🏢</div><div style="flex:1"><div class="merch-name">UBS Canteen</div><div class="merch-meta">5 Broadgate · 4 items</div></div><button class="pay-btn" onclick="openQR()">Pay</button></div>
+          </div>
+        </div>
+        <div style="margin:0 16px;padding:14px 16px;background:#fff;border-radius:14px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Your Balance</div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--green)">2,840 <span style="font-size:13px;opacity:0.5;font-weight:400">HP</span></div></div>
+          <div style="font-size:12px;color:var(--text3);font-weight:500">≈ £14.20</div>
+        </div>
+      </div>
+      <div id="s1" style="display:none">
+        <div class="section" style="margin-top:0"><div class="list-card">
+          <div class="vouch-row"><div class="v-ico g-teal">☕</div><div style="flex:1"><div class="v-name">Free Flat White</div><div class="v-meta">Peloton Café · 30 days</div></div><div style="text-align:right"><div class="v-hp">200 HP</div><div class="v-gbp">≈ £1.00</div><button class="v-btn">Redeem</button></div></div>
+          <div class="vouch-row"><div class="v-ico g-ind">🥗</div><div style="flex:1"><div class="v-name">Lunch Special</div><div class="v-meta">UBS Canteen · 30 days</div></div><div style="text-align:right"><div class="v-hp">500 HP</div><div class="v-gbp">≈ £2.50</div><button class="v-btn">Redeem</button></div></div>
+          <div class="vouch-row"><div class="v-ico g-grey">🧁</div><div style="flex:1"><div class="v-name">Pastry of the Day</div><div class="v-meta">Peloton Café · 30 days</div></div><div style="text-align:right"><div class="v-hp">150 HP</div><div class="v-gbp">≈ £0.75</div><button class="v-btn">Redeem</button></div></div>
+        </div></div>
+      </div>
+      <div id="s2" style="display:none">
+        <div class="section" style="margin-top:0"><div class="list-card">
+          <div class="vouch-row"><div class="v-ico g-teal">☕</div><div style="flex:1"><div class="v-name">Free Flat White</div><div class="v-meta">Expires 18 Apr 2026</div><div style="margin-top:6px;display:inline-block;padding:3px 10px;background:var(--g-dim);border:1px solid rgba(0,135,90,0.2);border-radius:4px;font-size:10px;font-weight:700;color:var(--green);letter-spacing:0.08em">ISSUED</div></div><div style="text-align:right"><div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">PIN</div><div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:var(--green);letter-spacing:0.08em">482910</div></div></div>
+        </div>
+        <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:12px;font-weight:500;padding:0 16px">Show this PIN to the merchant when redeeming your voucher</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WALLET ────────────────────────────────────────────────── -->
+    <div class="page" id="page-wallet">
+      <div class="ubs-hdr">
+        <div class="ubs-brand">
+          <svg width="28" height="20" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="#E4002B"/><circle cx="10" cy="10" r="5" fill="#FFFFFF"/><rect x="7" y="19" width="6" height="28" fill="#E4002B"/><rect x="13" y="24" width="5" height="4" fill="#E4002B"/><rect x="13" y="32" width="5" height="4" fill="#E4002B"/><rect x="13" y="40" width="4" height="3" fill="#E4002B"/><circle cx="34" cy="10" r="10" fill="#E4002B"/><circle cx="34" cy="10" r="5" fill="#FFFFFF"/><rect x="31" y="19" width="6" height="28" fill="#E4002B"/><rect x="37" y="24" width="5" height="4" fill="#E4002B"/><rect x="37" y="32" width="5" height="4" fill="#E4002B"/><rect x="37" y="40" width="4" height="3" fill="#E4002B"/><circle cx="58" cy="10" r="10" fill="#E4002B"/><circle cx="58" cy="10" r="5" fill="#FFFFFF"/><rect x="55" y="19" width="6" height="28" fill="#E4002B"/><rect x="61" y="24" width="5" height="4" fill="#E4002B"/><rect x="61" y="32" width="5" height="4" fill="#E4002B"/><rect x="61" y="40" width="4" height="3" fill="#E4002B"/></svg>
+          <div class="pg-heading" style="padding:0">Wallet</div>
+        </div>
+      </div>
+      <div style="margin:0 16px 16px;background:var(--grad-red2);border-radius:18px;padding:20px 22px;box-shadow:0 8px 28px rgba(228,0,43,0.22);position:relative;overflow:hidden">
+        <svg style="position:absolute;top:-5px;right:-8px;opacity:0.10" width="90" height="68" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="white"/><circle cx="10" cy="10" r="5" fill="rgba(160,0,25,0.8)"/><rect x="7" y="19" width="6" height="28" fill="white"/><rect x="13" y="24" width="5" height="4" fill="white"/><rect x="13" y="32" width="5" height="4" fill="white"/><rect x="13" y="40" width="4" height="3" fill="white"/><circle cx="34" cy="10" r="10" fill="white"/><circle cx="34" cy="10" r="5" fill="rgba(160,0,25,0.8)"/><rect x="31" y="19" width="6" height="28" fill="white"/><rect x="37" y="24" width="5" height="4" fill="white"/><rect x="37" y="32" width="5" height="4" fill="white"/><rect x="37" y="40" width="4" height="3" fill="white"/><circle cx="58" cy="10" r="10" fill="white"/><circle cx="58" cy="10" r="5" fill="rgba(160,0,25,0.8)"/><rect x="55" y="19" width="6" height="28" fill="white"/><rect x="61" y="24" width="5" height="4" fill="white"/><rect x="61" y="32" width="5" height="4" fill="white"/><rect x="61" y="40" width="4" height="3" fill="white"/></svg>
+        <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:0.14em;margin-bottom:8px">Current Balance</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:36px;font-weight:600;color:#fff;letter-spacing:-0.02em">2,840 <span style="font-size:18px;font-weight:400;opacity:0.5">HP</span></div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px;font-weight:500">≈ £14.20</div>
+      </div>
+      <div class="section">
+        <div class="sec-hdr"><div class="sec-title">All Transactions</div></div>
+        <div class="list-card">
+          <div class="tx-row"><div class="tx-ico g-earn"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">Ride commute</div><div class="tx-meta">Today · 8.4 km</div></div><div><div class="tx-amt pos">+160 HP</div><div class="tx-bal">2,840</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-red"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">Peloton Café</div><div class="tx-meta">Yesterday · Flat White</div></div><div><div class="tx-amt neg">−200 HP</div><div class="tx-bal">2,680</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-earn"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">Run commute</div><div class="tx-meta">Tue 17 Mar · 5.2 km</div></div><div><div class="tx-amt pos">+130 HP</div><div class="tx-bal">2,880</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-blue"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">From james.chen</div><div class="tx-meta">Mon 16 Mar</div></div><div><div class="tx-amt pos">+50 HP</div><div class="tx-bal">2,750</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-red"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">UBS Canteen</div><div class="tx-meta">Fri 13 Mar · Lunch</div></div><div><div class="tx-amt neg">−350 HP</div><div class="tx-bal">2,546</div></div></div>
+          <div class="tx-row"><div class="tx-ico g-teal"><svg viewBox="0 0 24 24" width="17" height="17" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div style="flex:1;min-width:0"><div class="tx-name">Welcome bonus</div><div class="tx-meta">1 Mar · UBS Health</div></div><div><div class="tx-amt pos">+500 HP</div><div class="tx-bal">500</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN ─────────────────────────────────────────────────── -->
+    <div class="page" id="page-admin">
+      <div class="ubs-hdr">
+        <div class="ubs-brand">
+          <svg width="28" height="20" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="#E4002B"/><circle cx="10" cy="10" r="5" fill="#FFFFFF"/><rect x="7" y="19" width="6" height="28" fill="#E4002B"/><rect x="13" y="24" width="5" height="4" fill="#E4002B"/><rect x="13" y="32" width="5" height="4" fill="#E4002B"/><rect x="13" y="40" width="4" height="3" fill="#E4002B"/><circle cx="34" cy="10" r="10" fill="#E4002B"/><circle cx="34" cy="10" r="5" fill="#FFFFFF"/><rect x="31" y="19" width="6" height="28" fill="#E4002B"/><rect x="37" y="24" width="5" height="4" fill="#E4002B"/><rect x="37" y="32" width="5" height="4" fill="#E4002B"/><rect x="37" y="40" width="4" height="3" fill="#E4002B"/><circle cx="58" cy="10" r="10" fill="#E4002B"/><circle cx="58" cy="10" r="5" fill="#FFFFFF"/><rect x="55" y="19" width="6" height="28" fill="#E4002B"/><rect x="61" y="24" width="5" height="4" fill="#E4002B"/><rect x="61" y="32" width="5" height="4" fill="#E4002B"/><rect x="61" y="40" width="4" height="3" fill="#E4002B"/></svg>
+          <div class="pg-heading" style="padding:0">Analytics</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.04em">UBS Health Scheme</div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-tile g-blue"><div class="k-ico">👥</div><div class="k-val">47</div><div class="k-lbl">Active Users</div></div>
+        <div class="kpi-tile g-red"><div class="k-ico">⚡</div><div class="k-val">84.3k</div><div class="k-lbl">HP Earned</div></div>
+        <div class="kpi-tile g-earn"><div class="k-ico">🌿</div><div class="k-val">421 kg</div><div class="k-lbl">CO₂ Avoided</div></div>
+        <div class="kpi-tile g-grey"><div class="k-ico">🏪</div><div class="k-val">2</div><div class="k-lbl">Merchants</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="c-lbl">HP Earned — 30 Days</div>
+        <div class="bars" id="adminChart"></div>
+        <div class="c-dates"><span class="c-date">18 Feb</span><span class="c-date">19 Mar</span></div>
+      </div>
+      <div class="section">
+        <div class="sec-hdr"><div class="sec-title">🏆 Leaderboard</div></div>
+        <div class="list-card">
+          <div class="lb-row"><div class="lb-rank">🥇</div><div class="lb-av g-red">AC</div><div style="flex:1"><div class="lb-name">Alice Chen</div><div class="lb-sub">18 commutes · 128 km</div></div><div class="lb-hp">2,840 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">🥈</div><div class="lb-av g-earn">SO</div><div style="flex:1"><div class="lb-name">Sam Okafor</div><div class="lb-sub">15 commutes · 98 km</div></div><div class="lb-hp">2,210 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">🥉</div><div class="lb-av g-blue">PM</div><div style="flex:1"><div class="lb-name">Priya Mehta</div><div class="lb-sub">14 commutes · 91 km</div></div><div class="lb-hp">1,960 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">04</div><div class="lb-av g-grey">TW</div><div style="flex:1"><div class="lb-name">Tom Williams</div><div class="lb-sub">12 commutes · 76 km</div></div><div class="lb-hp">1,520 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">05</div><div class="lb-av g-teal">LH</div><div style="flex:1"><div class="lb-name">Layla Hassan</div><div class="lb-sub">11 commutes · 68 km</div></div><div class="lb-hp">1,320 HP</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ──────────────────────────────────────────────── -->
+    <div class="page" id="page-settings">
+      <div class="ubs-hdr">
+        <div class="ubs-brand">
+          <svg width="28" height="20" viewBox="0 0 68 48" fill="none"><circle cx="10" cy="10" r="10" fill="#E4002B"/><circle cx="10" cy="10" r="5" fill="#FFFFFF"/><rect x="7" y="19" width="6" height="28" fill="#E4002B"/><rect x="13" y="24" width="5" height="4" fill="#E4002B"/><rect x="13" y="32" width="5" height="4" fill="#E4002B"/><rect x="13" y="40" width="4" height="3" fill="#E4002B"/><circle cx="34" cy="10" r="10" fill="#E4002B"/><circle cx="34" cy="10" r="5" fill="#FFFFFF"/><rect x="31" y="19" width="6" height="28" fill="#E4002B"/><rect x="37" y="24" width="5" height="4" fill="#E4002B"/><rect x="37" y="32" width="5" height="4" fill="#E4002B"/><rect x="37" y="40" width="4" height="3" fill="#E4002B"/><circle cx="58" cy="10" r="10" fill="#E4002B"/><circle cx="58" cy="10" r="5" fill="#FFFFFF"/><rect x="55" y="19" width="6" height="28" fill="#E4002B"/><rect x="61" y="24" width="5" height="4" fill="#E4002B"/><rect x="61" y="32" width="5" height="4" fill="#E4002B"/><rect x="61" y="40" width="4" height="3" fill="#E4002B"/></svg>
+          <div class="pg-heading" style="padding:0">Profile</div>
+        </div>
+      </div>
+      <!-- Profile card -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:8px 24px 24px">
+        <div style="width:76px;height:76px;border-radius:14px;background:var(--grad-hero);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#fff;margin-bottom:12px;box-shadow:0 6px 20px rgba(228,0,43,0.25);letter-spacing:0.06em">AC</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--text);letter-spacing:0.04em">Alice Chen</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:3px;font-weight:500"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="40212c2923256e2328252e003522336e232f2d">[email&#160;protected]</a></div>
+        <div style="margin-top:8px;padding:4px 14px;background:var(--red-dim);border:1px solid var(--red-dim2);border-radius:4px;font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.1em">UBS Employee</div>
+      </div>
+      <div class="s-section">
+        <div class="s-label">Account</div>
+        <div class="s-card">
+          <div class="s-row"><div class="s-ico g-blue">👤</div><div style="flex:1"><div class="s-name">Personal Details</div><div class="s-sub">Name, postcode, phone</div></div><div class="s-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+          <div class="s-row"><div class="s-ico g-earn">🌿</div><div style="flex:1"><div class="s-name">Strava</div><div class="s-sub" style="color:var(--green)">Connected ✓</div></div><div class="s-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+          <div class="s-row"><div class="s-ico g-red">📍</div><div style="flex:1"><div class="s-name">School Locations</div><div class="s-sub">0 saved</div></div><div class="s-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+        </div>
+      </div>
+      <div class="s-section">
+        <div class="s-label">Preferences</div>
+        <div class="s-card">
+          <div class="s-row"><div class="s-ico g-ind">🔔</div><div style="flex:1"><div class="s-name">Notifications</div><div class="s-sub">Activity, transfers, vouchers</div></div><div class="toggle"><div class="t-thumb"></div></div></div>
+          <div class="s-row"><div class="s-ico g-grey">🛡️</div><div style="flex:1"><div class="s-name">Privacy</div><div class="s-sub">Data & permissions</div></div><div class="s-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+        </div>
+      </div>
+      <div style="padding:0 16px 32px">
+        <button style="width:100%;padding:14px;border-radius:10px;background:var(--red-dim);border:1px solid var(--red-dim2);color:var(--red);font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase">Sign Out</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <div class="nav-btn active" id="nav-home" onclick="showPage('home')">
+      <div class="nav-pip"></div>
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-btn" id="nav-activity" onclick="showPage('activity')">
+      <div class="nav-pip"></div>
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Activity</span>
+    </div>
+    <div class="nav-btn" id="nav-merchants" onclick="showPage('merchants')">
+      <div class="nav-pip"></div>
+      <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <span>Pay</span>
+    </div>
+    <div class="nav-btn" id="nav-wallet" onclick="showPage('wallet')">
+      <div class="nav-pip"></div>
+      <svg viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+      <span>Wallet</span>
+    </div>
+    <div class="nav-btn" id="nav-admin" onclick="showPage('admin')">
+      <div class="nav-pip"></div>
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Admin</span>
+    </div>
+  </nav>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Clock
+function tick(){const n=new Date();document.getElementById('stTime').textContent=n.getHours()+':'+String(n.getMinutes()).padStart(2,'0')}
+tick();setInterval(tick,10000);
+
+// Navigation
+const pages=['home','activity','merchants','wallet','admin','settings'];
+function showPage(id){
+  pages.forEach(p=>{
+    const pg=document.getElementById('page-'+p);
+    const nb=document.getElementById('nav-'+p);
+    if(pg)pg.classList.toggle('active',p===id);
+    if(nb)nb.classList.toggle('active',p===id);
+  });
+  document.getElementById('mc').scrollTop=0;
+}
+
+// Segment
+function sseg(i){
+  document.querySelectorAll('#mSeg .seg-btn').forEach((b,j)=>b.classList.toggle('active',i===j));
+  [0,1,2].forEach(j=>{const el=document.getElementById('s'+j);if(el)el.style.display=j===i?'block':'none'});
+}
+
+// QR
+let secs=118,t2;
+function openQR(){document.getElementById('qrModal').classList.add('open');secs=118;rt();t2=setInterval(()=>{if(--secs<=0)closeQR();else rt();},1000)}
+function closeQR(){document.getElementById('qrModal').classList.remove('open');clearInterval(t2)}
+function rt(){const el=document.getElementById('qrTimer');el.textContent=Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0');el.className='qt-num '+(secs>60?'tg':secs>20?'to':'tr')}
+function hoClick(e){if(e.target===e.currentTarget)closeQR()}
+
+// Chart
+const d=[0,140,0,300,160,340,0,180,260,320,0,220,160,300,360,180,0,200,280,340,160,0,260,200,340,280,160,0,300,160];
+const mx=Math.max(...d);
+const c=document.getElementBy

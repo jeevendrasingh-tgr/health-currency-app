@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Health Currency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:         #0A0B0F;
+  --bg2:        #13141A;
+  --bg3:        #1C1D26;
+  --bg4:        #242532;
+  --border:     rgba(255,255,255,0.06);
+  --border2:    rgba(255,255,255,0.10);
+  --text:       #FFFFFF;
+  --text2:      rgba(255,255,255,0.55);
+  --text3:      rgba(255,255,255,0.30);
+
+  /* Revolut-style gradient palette */
+  --grad-card:  linear-gradient(135deg, #1a1040 0%, #1e2a6e 35%, #0d4f8c 65%, #0891b2 100%);
+  --grad-green: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0d9488 100%);
+  --grad-earn:  linear-gradient(135deg, #14532d 0%, #15803d 100%);
+  --grad-spend: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  --grad-trans: linear-gradient(135deg, #312e81 0%, #4338ca 100%);
+  --grad-admin: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%);
+
+  --green:  #34d399;
+  --red:    #f87171;
+  --blue:   #60a5fa;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --cyan:   #22d3ee;
+  --teal:   #2dd4bf;
+}
+
+html, body {
+  height: 100%; background: var(--bg);
+  color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased; overflow: hidden;
+}
+
+/* ─── App shell ──────────────────────────────────────────────────── */
+.app {
+  display: flex; flex-direction: column;
+  height: 100vh; max-width: 420px;
+  margin: 0 auto; position: relative;
+  background: var(--bg);
+  box-shadow: 0 0 80px rgba(0,0,0,0.8);
+}
+
+/* For desktop — show phone frame */
+@media (min-width: 600px) {
+  body { display: flex; align-items: center; justify-content: center; background: #050507; }
+  .app { border-radius: 40px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+}
+
+/* ─── Status bar ─────────────────────────────────────────────────── */
+.status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px 8px; flex-shrink: 0;
+}
+.status-time { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 600; }
+.status-icons { display: flex; gap: 6px; align-items: center; }
+.status-icons svg { width: 14px; height: 14px; fill: var(--text); }
+
+/* ─── Scrollable content ─────────────────────────────────────────── */
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; }
+.content::-webkit-scrollbar { display: none; }
+
+/* ─── Pages ──────────────────────────────────────────────────────── */
+.page { display: none; animation: slideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.page.active { display: block; }
+@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+/* ─── Bottom nav ─────────────────────────────────────────────────── */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--bg2); border-top: 1px solid var(--border);
+  display: flex; padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  flex-shrink: 0; z-index: 50;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 0; cursor: pointer; transition: all 0.2s; position: relative;
+}
+.nav-btn svg { width: 22px; height: 22px; transition: all 0.2s; }
+.nav-btn span { font-size: 10px; font-weight: 600; color: var(--text3); transition: color 0.2s; letter-spacing: 0.02em; }
+.nav-btn.active span { color: var(--text); }
+.nav-btn.active svg { stroke: var(--text); filter: drop-shadow(0 0 6px rgba(96,165,250,0.6)); }
+.nav-btn svg { stroke: var(--text3); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-dot { position: absolute; top: 4px; right: calc(50% - 14px); width: 5px; height: 5px; border-radius: 50%; background: var(--blue); display: none; }
+.nav-btn.active .nav-dot { display: block; }
+
+/* ─── Section header ─────────────────────────────────────────────── */
+.section-header { padding: 8px 24px 16px; display: flex; align-items: center; justify-content: space-between; }
+.section-title { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.section-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--grad-card); display: flex; align-items: center;
+  justify-content: center; font-family: 'Unbounded', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+}
+
+/* ─── HERO GRADIENT CARD ─────────────────────────────────────────── */
+.hero-card {
+  margin: 0 16px 20px;
+  background: var(--grad-card);
+  border-radius: 24px; padding: 26px 24px 22px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(8, 145, 178, 0.25), 0 4px 20px rgba(0,0,0,0.4);
+}
+.hero-card::before {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-card::after {
+  content: '';
+  position: absolute; bottom: -60px; left: -20px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-label {
+  font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5);
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px;
+  position: relative; z-index: 1;
+}
+.hero-amount {
+  font-family: 'Unbounded', sans-serif; font-weight: 800;
+  font-size: 42px; letter-spacing: -0.03em; line-height: 1;
+  position: relative; z-index: 1; margin-bottom: 4px;
+}
+.hero-amount .unit { font-size: 22px; font-weight: 600; opacity: 0.7; margin-left: 6px; }
+.hero-sub {
+  font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 22px;
+  position: relative; z-index: 1; font-weight: 500;
+}
+.hero-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px; background: rgba(255,255,255,0.1);
+  border-radius: 14px; overflow: hidden;
+  position: relative; z-index: 1;
+}
+.hero-stat {
+  background: rgba(255,255,255,0.07); padding: 12px 10px;
+  backdrop-filter: blur(10px);
+}
+.hero-stat-val { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 700; }
+.hero-stat-label { font-size: 9px; color: rgba(255,255,255,0.45); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+/* ─── Quick action row ───────────────────────────────────────────── */
+.quick-row { display: flex; gap: 10px; padding: 0 16px 20px; overflow-x: auto; }
+.quick-row::-webkit-scrollbar { display: none; }
+.quick-btn {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; transition: transform 0.15s;
+}
+.quick-btn:active { transform: scale(0.93); }
+.quick-icon {
+  width: 56px; height: 56px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; position: relative; overflow: hidden;
+}
+.quick-icon svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.quick-label { font-size: 11px; font-weight: 600; color: var(--text2); white-space: nowrap; }
+
+/* ─── List section ───────────────────────────────────────────────── */
+.list-section { margin: 0 16px 24px; }
+.list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.list-title { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.list-link { font-size: 12px; font-weight: 600; color: var(--blue); cursor: pointer; }
+.list-card { background: var(--bg2); border-radius: 20px; overflow: hidden; }
+
+/* ─── Transaction row ────────────────────────────────────────────── */
+.tx-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s;
+}
+.tx-row:last-child { border-bottom: none; }
+.tx-row:active { background: rgba(255,255,255,0.03); }
+.tx-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 17px;
+}
+.tx-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tx-body { flex: 1; min-width: 0; }
+.tx-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.tx-meta { font-size: 12px; color: var(--text3); font-weight: 500; }
+.tx-right { text-align: right; flex-shrink: 0; }
+.tx-amount { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+.tx-bal { font-size: 11px; color: var(--text3); margin-top: 3px; font-weight: 500; }
+.pos { color: var(--green); }
+.neg { color: var(--text2); }
+
+/* ─── Activity page ──────────────────────────────────────────────── */
+.summary-pills { display: flex; gap: 8px; padding: 0 16px 20px; overflow-x: auto; }
+.summary-pills::-webkit-scrollbar { display: none; }
+.pill {
+  flex-shrink: 0; padding: 10px 16px; border-radius: 14px;
+  background: var(--bg2); border: 1px solid var(--border2);
+}
+.pill-val { font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+.pill-label { font-size: 10px; color: var(--text3); margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.activity-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s;
+}
+.activity-row:last-child { border-bottom: none; }
+.activity-row:active { background: rgba(255,255,255,0.03); }
+.act-icon {
+  width: 46px; height: 46px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0; position: relative;
+}
+.act-icon-badge {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--green); border: 2px solid var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px;
+}
+.act-body { flex: 1; min-width: 0; }
+.act-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.act-meta { font-size: 12px; color: var(--text3); font-weight: 500; }
+.act-right { text-align: right; }
+.act-hp { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 700; color: var(--green); letter-spacing: -0.02em; }
+.act-co2 { font-size: 11px; color: var(--text3); margin-top: 3px; font-weight: 500; }
+
+/* ─── Merchants page ─────────────────────────────────────────────── */
+.segment { display: flex; gap: 4px; padding: 0 16px 20px; }
+.seg-btn {
+  flex: 1; padding: 9px 8px; border-radius: 12px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  text-align: center; color: var(--text3);
+  background: var(--bg2); border: 1px solid var(--border);
+  transition: all 0.15s; letter-spacing: 0.01em;
+}
+.seg-btn.active { background: var(--text); color: var(--bg); border-color: transparent; }
+
+.merchant-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.merchant-row:last-child { border-bottom: none; }
+.merchant-avatar {
+  width: 46px; height: 46px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.merchant-body { flex: 1; min-width: 0; }
+.merchant-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.merchant-meta { font-size: 12px; color: var(--text3); font-weight: 500; }
+.merchant-cta {
+  padding: 8px 16px; border-radius: 50px; font-size: 12px; font-weight: 700;
+  background: rgba(96,165,250,0.15); color: var(--blue);
+  border: 1px solid rgba(96,165,250,0.25); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.merchant-cta:active { background: rgba(96,165,250,0.25); }
+
+.voucher-card-item {
+  padding: 16px; display: flex; align-items: center; gap: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.voucher-card-item:last-child { border-bottom: none; }
+.voucher-icon {
+  width: 46px; height: 46px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.voucher-body { flex: 1; min-width: 0; }
+.voucher-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.voucher-meta { font-size: 12px; color: var(--text3); font-weight: 500; }
+.voucher-price {
+  text-align: right; flex-shrink: 0;
+}
+.voucher-hp { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 700; color: var(--green); letter-spacing: -0.02em; }
+.voucher-gbp { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.redeem-btn {
+  margin-top: 8px; padding: 6px 14px; border-radius: 50px;
+  font-size: 11px; font-weight: 700; background: var(--green);
+  color: #000; border: none; cursor: pointer;
+}
+
+/* ─── Admin page ─────────────────────────────────────────────────── */
+.kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px 16px; }
+.kpi-tile {
+  border-radius: 20px; padding: 18px; overflow: hidden; position: relative;
+}
+.kpi-tile::after {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.kpi-tile-icon { font-size: 22px; margin-bottom: 14px; }
+.kpi-tile-val { font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.kpi-tile-label { font-size: 10px; color: rgba(255,255,255,0.55); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+.chart-section { margin: 0 16px 16px; }
+.chart-wrap { background: var(--bg2); border-radius: 20px; padding: 18px; }
+.chart-label { font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 72px; }
+.bar { flex: 1; border-radius: 4px 4px 0 0; min-height: 3px; transition: height 0.4s cubic-bezier(0.22,1,0.36,1); }
+.chart-dates { display: flex; justify-content: space-between; margin-top: 8px; }
+.chart-date { font-size: 10px; color: var(--text3); font-weight: 600; }
+
+.lb-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-rank { width: 24px; text-align: center; font-family: 'Unbounded', sans-serif; font-size: 11px; font-weight: 700; color: var(--text3); flex-shrink: 0; }
+.lb-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--grad-card); display: flex; align-items: center;
+  justify-content: center; font-family: 'Unbounded', sans-serif;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+}
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.lb-sub { font-size: 11px; color: var(--text3); font-weight: 500; }
+.lb-hp { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 700; color: var(--green); letter-spacing: -0.02em; }
+
+/* ─── QR Modal ───────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(16px);
+  display: none; align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--bg2); border-radius: 32px 32px 0 0;
+  padding: 8px 24px 40px; width: 100%; max-width: 420px;
+  animation: sheetUp 0.32s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes sheetUp { from { transform:translateY(100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
+.sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); margin: 12px auto 20px; }
+.sheet-title { font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 6px; letter-spacing: -0.02em; }
+.sheet-sub { font-size: 13px; color: var(--text3); text-align: center; margin-bottom: 24px; font-weight: 500; }
+.qr-wrap {
+  width: 200px; height: 200px; margin: 0 auto 20px;
+  background: #fff; border-radius: 20px; padding: 14px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 40px rgba(8,145,178,0.3);
+}
+.qr-timer-row { text-align: center; margin-bottom: 20px; }
+.qr-timer { font-family: 'Unbounded', sans-serif; font-size: 36px; font-weight: 900; letter-spacing: -0.04em; }
+.qr-timer.green { color: var(--green); }
+.qr-timer.orange { color: var(--orange); }
+.qr-timer.red { color: #f87171; }
+.qr-timer-label { font-size: 11px; color: var(--text3); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+.sheet-close {
+  width: 100%; padding: 14px; border-radius: 16px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+}
+.sheet-close:active { background: var(--bg4); }
+
+/* ─── Settings ───────────────────────────────────────────────────── */
+.settings-section { margin: 0 16px 16px; }
+.settings-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 4px; margin-bottom: 8px; }
+.settings-card { background: var(--bg2); border-radius: 20px; overflow: hidden; }
+.setting-row {
+  display: flex; align-items: center; padding: 16px;
+  border-bottom: 1px solid var(--border); gap: 14px;
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 17px; }
+.setting-body { flex: 1; }
+.setting-name { font-size: 14px; font-weight: 600; }
+.setting-sub { font-size: 12px; color: var(--text3); margin-top: 2px; font-weight: 500; }
+.setting-right { color: var(--text3); }
+.setting-right svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.toggle { width: 46px; height: 26px; border-radius: 13px; background: var(--green); position: relative; cursor: pointer; transition: background 0.2s; }
+.toggle-thumb { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+
+/* ─── Strava connected banner ────────────────────────────────────── */
+.strava-banner {
+  margin: 0 16px 20px; padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(34,211,153,0.12) 0%, rgba(6,95,70,0.2) 100%);
+  border: 1px solid rgba(52,211,153,0.25); border-radius: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.strava-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex-shrink: 0; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+.strava-text { font-size: 13px; font-weight: 600; color: var(--green); }
+.strava-sub { font-size: 11px; color: rgba(52,211,153,0.6); font-weight: 500; margin-top: 1px; }
+
+/* ─── Gradient helpers ───────────────────────────────────────────── */
+.g-blue   { background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%); }
+.g-green  { background: linear-gradient(135deg, #064e3b 0%, #059669 100%); }
+.g-purple { background: linear-gradient(135deg, #3b0764 0%, #7c3aed 100%); }
+.g-orange { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); }
+.g-teal   { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); }
+.g-indigo { background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%); }
+.g-rose   { background: linear-gradient(135deg, #881337 0%, #e11d48 100%); }
+.g-admin  { background: var(--grad-admin); }
+</style>
+</head>
+<body>
+
+<!-- QR Modal -->
+<div class="modal-overlay" id="qrModal" onclick="handleOverlayClick(event)">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Pay with HP</div>
+    <div class="sheet-sub">Show this QR code to the merchant</div>
+    <div class="qr-wrap">
+      <svg viewBox="0 0 21 21" width="172" height="172" xmlns="http://www.w3.org/2000/svg">
+        <rect width="21" height="21" fill="white"/>
+        <rect x="1" y="1" width="7" height="7" fill="#0A0B0F" rx="1"/>
+        <rect x="2" y="2" width="5" height="5" fill="white" rx="0.5"/>
+        <rect x="3" y="3" width="3" height="3" fill="#0A0B0F" rx="0.3"/>
+        <rect x="13" y="1" width="7" height="7" fill="#0A0B0F" rx="1"/>
+        <rect x="14" y="2" width="5" height="5" fill="white" rx="0.5"/>
+        <rect x="15" y="3" width="3" height="3" fill="#0A0B0F" rx="0.3"/>
+        <rect x="1" y="13" width="7" height="7" fill="#0A0B0F" rx="1"/>
+        <rect x="2" y="14" width="5" height="5" fill="white" rx="0.5"/>
+        <rect x="3" y="15" width="3" height="3" fill="#0A0B0F" rx="0.3"/>
+        <rect x="9" y="1" width="1" height="1" fill="#0A0B0F"/>
+        <rect x="11" y="1" width="1" height="1" fill="#0A0B0F"/>
+        <rect x="9" y="3" width="2" height="1" fill="#0A0B0F"/>
+        <rect x="11" y="4" width="1" height="2" fill="#0A0B0F"/>
+        <rect x="9" y="6" width="3" height="2" fill="#0A0B0F"/>
+        <rect x="1" y="9" width="2" height="1" fill="#0A0B0F"/>
+        <rect x="4" y="9" width="1" height="2" fill="#0A0B0F"/>
+        <rect x="6" y="9" width="2" height="1" fill="#0A0B0F"/>
+        <rect x="9" y="9" width="1" height="2" fill="#0A0B0F"/>
+        <rect x="11" y="9" width="3" height="1" fill="#0A0B0F"/>
+        <rect x="15" y="9" width="2" height="2" fill="#0A0B0F"/>
+        <rect x="18" y="9" width="2" height="1" fill="#0A0B0F"/>
+        <rect x="1" y="11" width="1" height="2" fill="#0A0B0F"/>
+        <rect x="3" y="11" width="3" height="1" fill="#0A0B0F"/>
+        <rect x="7" y="11" width="1" height="2" fill="#0A0B0F"/>
+        <rect x="11" y="11" width="3" height="2" fill="#0A0B0F"/>
+        <rect x="17" y="11" width="3" height="1" fill="#0A0B0F"/>
+        <rect x="9" y="13" width="1" height="3" fill="#0A0B0F"/>
+        <rect x="11" y="14" width="2" height="1" fill="#0A0B0F"/>
+        <rect x="13" y="13" width="1" height="4" fill="#0A0B0F"/>
+        <rect x="15" y="13" width="2" height="2" fill="#0A0B0F"/>
+        <rect x="18" y="13" width="2" height="2" fill="#0A0B0F"/>
+        <rect x="9" y="17" width="3" height="1" fill="#0A0B0F"/>
+        <rect x="15" y="16" width="1" height="2" fill="#0A0B0F"/>
+        <rect x="17" y="16" width="1" height="3" fill="#0A0B0F"/>
+        <rect x="19" y="16" width="1" height="3" fill="#0A0B0F"/>
+        <rect x="9" y="19" width="2" height="1" fill="#0A0B0F"/>
+        <rect x="13" y="18" width="1" height="2" fill="#0A0B0F"/>
+      </svg>
+    </div>
+    <div class="qr-timer-row">
+      <div class="qr-timer green" id="qrTimer">1:58</div>
+      <div class="qr-timer-label">expires in</div>
+    </div>
+    <button class="sheet-close" onclick="closeQR()">Cancel</button>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app">
+  <div class="status-bar">
+    <span class="status-time" id="statusTime">9:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 24 24"><path d="M1 6l4.5 4.5L12 4l6.5 6.5L23 6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="2" stroke="white" stroke-width="2" fill="none"/><path d="M22 11v3" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/><rect x="4" y="9" width="13" height="7" rx="1" fill="white"/></svg>
+    </div>
+  </div>
+
+  <div class="content" id="mainContent">
+
+    <!-- ── HOME ─────────────────────────────────────────────────── -->
+    <div class="page active" id="page-home">
+      <div class="section-header">
+        <div>
+          <div style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:2px">Good morning</div>
+          <div class="section-title">alice.chen</div>
+        </div>
+        <div class="section-avatar" onclick="showPage('settings')">A</div>
+      </div>
+
+      <!-- Hero card -->
+      <div class="hero-card">
+        <div class="hero-label">Health Points Balance</div>
+        <div class="hero-amount"><span id="heroHP">2,840</span><span class="unit">HP</span></div>
+        <div class="hero-sub">≈ £14.20 · Updated just now</div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-val" style="color:var(--green)">640</div>
+            <div class="hero-stat-label">Earned</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-val" style="color:var(--cyan)">3.2kg</div>
+            <div class="hero-stat-label">CO₂ saved</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-val" style="color:var(--purple)">18</div>
+            <div class="hero-stat-label">Commutes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="quick-row">
+        <div class="quick-btn" onclick="showPage('merchants')">
+          <div class="quick-icon g-blue">
+            <svg viewBox="0 0 24 24"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <span class="quick-label">Pay</span>
+        </div>
+        <div class="quick-btn" onclick="showPage('merchants')">
+          <div class="quick-icon g-teal">
+            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <span class="quick-label">Vouchers</span>
+        </div>
+        <div class="quick-btn">
+          <div class="quick-icon g-indigo">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <span class="quick-label">Add HP</span>
+        </div>
+        <div class="quick-btn">
+          <div class="quick-icon g-purple">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <span class="quick-label">Send</span>
+        </div>
+        <div class="quick-btn" onclick="showPage('activity')">
+          <div class="quick-icon g-green">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <span class="quick-label">Activity</span>
+        </div>
+      </div>
+
+      <!-- Strava banner -->
+      <div class="strava-banner">
+        <div class="strava-dot"></div>
+        <div>
+          <div class="strava-text">Strava connected</div>
+          <div class="strava-sub">Syncing commutes automatically</div>
+        </div>
+      </div>
+
+      <!-- Recent transactions -->
+      <div class="list-section">
+        <div class="list-header">
+          <div class="list-title">Transactions</div>
+          <span class="list-link" onclick="showPage('wallet')">See all</span>
+        </div>
+        <div class="list-card">
+          <div class="tx-row">
+            <div class="tx-icon g-green"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <div class="tx-body"><div class="tx-name">Ride commute</div><div class="tx-meta">Today · 8.4 km · Broadgate</div></div>
+            <div class="tx-right"><div class="tx-amount pos">+160 HP</div><div class="tx-bal">bal 2,840</div></div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon g-orange"><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+            <div class="tx-body"><div class="tx-name">Peloton Café</div><div class="tx-meta">Yesterday · Flat White</div></div>
+            <div class="tx-right"><div class="tx-amount neg">−200 HP</div><div class="tx-bal">bal 2,680</div></div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon g-green"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <div class="tx-body"><div class="tx-name">Run commute</div><div class="tx-meta">Tue 17 Mar · 5.2 km</div></div>
+            <div class="tx-right"><div class="tx-amount pos">+130 HP</div><div class="tx-bal">bal 2,880</div></div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon g-indigo"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+            <div class="tx-body"><div class="tx-name">From james.chen</div><div class="tx-meta">Mon 16 Mar · Transfer</div></div>
+            <div class="tx-right"><div class="tx-amount pos">+50 HP</div><div class="tx-bal">bal 2,750</div></div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-icon g-teal"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+            <div class="tx-body"><div class="tx-name">Welcome bonus</div><div class="tx-meta">1 Mar · UBS Health Scheme</div></div>
+            <div class="tx-right"><div class="tx-amount pos">+500 HP</div><div class="tx-bal">bal 500</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ACTIVITY ──────────────────────────────────────────────── -->
+    <div class="page" id="page-activity">
+      <div class="section-header">
+        <div><div style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:2px">March 2026</div><div class="section-title">Activity</div></div>
+      </div>
+      <div class="summary-pills">
+        <div class="pill"><div class="pill-val" style="color:var(--green)">640 HP</div><div class="pill-label">Earned</div></div>
+        <div class="pill"><div class="pill-val">18</div><div class="pill-label">Commutes</div></div>
+        <div class="pill"><div class="pill-val" style="color:var(--cyan)">3.2 kg</div><div class="pill-label">CO₂</div></div>
+        <div class="pill"><div class="pill-val">128 km</div><div class="pill-label">Distance</div></div>
+        <div class="pill"><div class="pill-val" style="color:var(--orange)">14</div><div class="pill-label">Active days</div></div>
+      </div>
+      <div class="list-section">
+        <div class="list-card">
+          <div class="activity-row">
+            <div class="act-icon g-blue" style="border-radius:16px">🚴<div class="act-icon-badge">✓</div></div>
+            <div class="act-body"><div class="act-title">Ride · 8.4 km</div><div class="act-meta">Today 08:32 · 28 min · avg 18 km/h</div></div>
+            <div class="act-right"><div class="act-hp">+160 HP</div><div class="act-co2">0.042 kg CO₂</div></div>
+          </div>
+          <div class="activity-row">
+            <div class="act-icon g-orange" style="border-radius:16px">🏃<div class="act-icon-badge">✓</div></div>
+            <div class="act-body"><div class="act-title">Run · 5.2 km</div><div class="act-meta">Tue 17 Mar · 07:45 · 26 min</div></div>
+            <div class="act-right"><div class="act-hp">+130 HP</div><div class="act-co2">0.026 kg CO₂</div></div>
+          </div>
+          <div class="activity-row">
+            <div class="act-icon g-blue" style="border-radius:16px">🚴<div class="act-icon-badge">✓</div></div>
+            <div class="act-body"><div class="act-title">Ride · 8.1 km</div><div class="act-meta">Mon 16 Mar · 08:18 · 27 min</div></div>
+            <div class="act-right"><div class="act-hp">+154 HP</div><div class="act-co2">0.041 kg CO₂</div></div>
+          </div>
+          <div class="activity-row">
+            <div class="act-icon g-green" style="border-radius:16px">🚶<div class="act-icon-badge">✓</div></div>
+            <div class="act-body"><div class="act-title">Walk · 2.8 km</div><div class="act-meta">Fri 13 Mar · 08:55 · 34 min</div></div>
+            <div class="act-right"><div class="act-hp">+42 HP</div><div class="act-co2">0.014 kg CO₂</div></div>
+          </div>
+          <div class="activity-row">
+            <div class="act-icon g-blue" style="border-radius:16px">🚴<div class="act-icon-badge">✓</div></div>
+            <div class="act-body"><div class="act-title">Ride · 8.5 km</div><div class="act-meta">Thu 12 Mar · 08:11 · 29 min</div></div>
+            <div class="act-right"><div class="act-hp">+162 HP</div><div class="act-co2">0.043 kg CO₂</div></div>
+          </div>
+          <div class="activity-row">
+            <div class="act-icon g-orange" style="border-radius:16px">🏃<div class="act-icon-badge">✓</div></div>
+            <div class="act-body"><div class="act-title">Run · 4.9 km</div><div class="act-meta">Wed 11 Mar · 07:50 · 25 min</div></div>
+            <div class="act-right"><div class="act-hp">+122 HP</div><div class="act-co2">0.024 kg CO₂</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MERCHANTS ─────────────────────────────────────────────── -->
+    <div class="page" id="page-merchants">
+      <div class="section-header">
+        <div><div style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:2px">Spend your points</div><div class="section-title">Merchants</div></div>
+      </div>
+      <div class="segment" id="merchantSegment">
+        <div class="seg-btn active" onclick="switchSeg(0)">Places</div>
+        <div class="seg-btn" onclick="switchSeg(1)">Vouchers</div>
+        <div class="seg-btn" onclick="switchSeg(2)">My Wallet</div>
+      </div>
+
+      <div id="seg-0">
+        <div class="list-section" style="margin-top:0">
+          <div class="list-card">
+            <div class="merchant-row">
+              <div class="merchant-avatar g-teal" style="border-radius:14px">☕</div>
+              <div class="merchant-body"><div class="merchant-name">The Peloton Café</div><div class="merchant-meta">📍 Broadgate Circle · 9 items</div></div>
+              <div class="merchant-cta" onclick="openQR()">Pay</div>
+            </div>
+            <div class="merchant-row">
+              <div class="merchant-avatar g-indigo" style="border-radius:14px">🏢</div>
+              <div class="merchant-body"><div class="merchant-name">UBS Canteen</div><div class="merchant-meta">📍 5 Broadgate · 4 items</div></div>
+              <div class="merchant-cta" onclick="openQR()">Pay</div>
+            </div>
+          </div>
+        </div>
+        <!-- Balance reminder -->
+        <div style="margin:0 16px;padding:14px 16px;background:var(--bg2);border-radius:16px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:2px">Your balance</div><div style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:800;color:var(--green)">2,840 <span style="font-size:12px;font-weight:600;opacity:0.6">HP</span></div></div>
+          <div style="font-size:12px;color:var(--text3);font-weight:500">≈ £14.20</div>
+        </div>
+      </div>
+
+      <div id="seg-1" style="display:none">
+        <div class="list-section" style="margin-top:0">
+          <div class="list-card">
+            <div class="voucher-card-item">
+              <div class="voucher-icon g-teal" style="border-radius:14px">☕</div>
+              <div class="voucher-body"><div class="voucher-name">Free Flat White</div><div class="voucher-meta">Peloton Café · 30 days</div></div>
+              <div class="voucher-price"><div class="voucher-hp">200 HP</div><div class="voucher-gbp">≈ £1.00</div><button class="redeem-btn">Redeem</button></div>
+            </div>
+            <div class="voucher-card-item">
+              <div class="voucher-icon g-indigo" style="border-radius:14px">🥗</div>
+              <div class="voucher-body"><div class="voucher-name">Lunch Special</div><div class="voucher-meta">UBS Canteen · 30 days</div></div>
+              <div class="voucher-price"><div class="voucher-hp">500 HP</div><div class="voucher-gbp">≈ £2.50</div><button class="redeem-btn">Redeem</button></div>
+            </div>
+            <div class="voucher-card-item">
+              <div class="voucher-icon g-purple" style="border-radius:14px">🧁</div>
+              <div class="voucher-body"><div class="voucher-name">Pastry of the Day</div><div class="voucher-meta">Peloton Café · 30 days</div></div>
+              <div class="voucher-price"><div class="voucher-hp">150 HP</div><div class="voucher-gbp">≈ £0.75</div><button class="redeem-btn">Redeem</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="seg-2" style="display:none">
+        <div class="list-section" style="margin-top:0">
+          <div class="list-card">
+            <div class="voucher-card-item">
+              <div class="voucher-icon g-teal" style="border-radius:14px">☕</div>
+              <div class="voucher-body">
+                <div class="voucher-name">Free Flat White</div>
+                <div class="voucher-meta">Expires 18 Apr 2026</div>
+                <div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(34,211,153,0.1);border:1px solid rgba(34,211,153,0.25);border-radius:20px">
+                  <span style="font-size:10px;color:var(--green);font-weight:700">ISSUED</span>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:11px;color:var(--text3);margin-bottom:4px">PIN</div>
+                <div style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:900;color:var(--green);letter-spacing:0.05em">482910</div>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:12px;font-weight:500;padding:0 16px">Show this PIN to the merchant when you're ready to redeem</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WALLET ─────────────────────────────────────────────────── -->
+    <div class="page" id="page-wallet">
+      <div class="section-header">
+        <div><div style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:2px">All transactions</div><div class="section-title">Wallet</div></div>
+      </div>
+
+      <!-- Mini hero -->
+      <div style="margin:0 16px 20px;background:var(--grad-green);border-radius:20px;padding:20px 22px;box-shadow:0 8px 30px rgba(6,95,70,0.4)">
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px">Balance</div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:34px;font-weight:900;letter-spacing:-0.03em">2,840 <span style="font-size:18px;font-weight:600;opacity:0.6">HP</span></div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;font-weight:500">≈ £14.20</div>
+      </div>
+
+      <div class="list-section">
+        <div class="list-header"><div class="list-title">History</div></div>
+        <div class="list-card">
+          <div class="tx-row"><div class="tx-icon g-green"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="tx-body"><div class="tx-name">Ride commute</div><div class="tx-meta">Today · 8.4 km</div></div><div class="tx-right"><div class="tx-amount pos">+160 HP</div><div class="tx-bal">2,840 HP</div></div></div>
+          <div class="tx-row"><div class="tx-icon g-orange"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div><div class="tx-body"><div class="tx-name">Peloton Café</div><div class="tx-meta">Yesterday · Flat White</div></div><div class="tx-right"><div class="tx-amount neg">−200 HP</div><div class="tx-bal">2,680 HP</div></div></div>
+          <div class="tx-row"><div class="tx-icon g-green"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="tx-body"><div class="tx-name">Run commute</div><div class="tx-meta">Tue 17 Mar · 5.2 km</div></div><div class="tx-right"><div class="tx-amount pos">+130 HP</div><div class="tx-bal">2,880 HP</div></div></div>
+          <div class="tx-row"><div class="tx-icon g-indigo"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div class="tx-body"><div class="tx-name">From james.chen</div><div class="tx-meta">Mon 16 Mar · Transfer</div></div><div class="tx-right"><div class="tx-amount pos">+50 HP</div><div class="tx-bal">2,750 HP</div></div></div>
+          <div class="tx-row"><div class="tx-icon g-blue"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="tx-body"><div class="tx-name">Ride commute</div><div class="tx-meta">Sun 15 Mar · 8.1 km</div></div><div class="tx-right"><div class="tx-amount pos">+154 HP</div><div class="tx-bal">2,700 HP</div></div></div>
+          <div class="tx-row"><div class="tx-icon g-rose"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div><div class="tx-body"><div class="tx-name">UBS Canteen</div><div class="tx-meta">Fri 13 Mar · Lunch</div></div><div class="tx-right"><div class="tx-amount neg">−350 HP</div><div class="tx-bal">2,546 HP</div></div></div>
+          <div class="tx-row"><div class="tx-icon g-teal"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="tx-body"><div class="tx-name">Welcome bonus</div><div class="tx-meta">1 Mar · UBS Health</div></div><div class="tx-right"><div class="tx-amount pos">+500 HP</div><div class="tx-bal">500 HP</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN ──────────────────────────────────────────────────── -->
+    <div class="page" id="page-admin">
+      <div class="section-header">
+        <div><div style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:2px">UBS Health Scheme</div><div class="section-title">Analytics</div></div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-tile g-admin">
+          <div class="kpi-tile-icon">👥</div>
+          <div class="kpi-tile-val">47</div>
+          <div class="kpi-tile-label">Active users</div>
+        </div>
+        <div class="kpi-tile" style="background:var(--grad-earn)">
+          <div class="kpi-tile-icon">⚡</div>
+          <div class="kpi-tile-val">84.3k</div>
+          <div class="kpi-tile-label">HP earned</div>
+        </div>
+        <div class="kpi-tile" style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%)">
+          <div class="kpi-tile-icon">🌿</div>
+          <div class="kpi-tile-val">421 kg</div>
+          <div class="kpi-tile-label">CO₂ avoided</div>
+        </div>
+        <div class="kpi-tile" style="background:linear-gradient(135deg,#7c2d12 0%,#c2410c 100%)">
+          <div class="kpi-tile-icon">🏪</div>
+          <div class="kpi-tile-val">2</div>
+          <div class="kpi-tile-label">Merchants</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-wrap">
+          <div class="chart-label">HP Earned · 30 Days</div>
+          <div class="bars" id="adminChart"></div>
+          <div class="chart-dates"><span class="chart-date">18 Feb</span><span class="chart-date">19 Mar</span></div>
+        </div>
+      </div>
+
+      <div class="list-section">
+        <div class="list-header"><div class="list-title">🏆 Leaderboard</div></div>
+        <div class="list-card">
+          <div class="lb-row"><div class="lb-rank">🥇</div><div class="lb-avatar">A</div><div class="lb-info"><div class="lb-name">Alice Chen</div><div class="lb-sub">18 commutes · 128 km</div></div><div class="lb-hp">2,840 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">🥈</div><div class="lb-avatar" style="background:var(--grad-green)">S</div><div class="lb-info"><div class="lb-name">Sam Okafor</div><div class="lb-sub">15 commutes · 98 km</div></div><div class="lb-hp">2,210 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">🥉</div><div class="lb-avatar" style="background:var(--grad-spend)">P</div><div class="lb-info"><div class="lb-name">Priya Mehta</div><div class="lb-sub">14 commutes · 91 km</div></div><div class="lb-hp">1,960 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">4</div><div class="lb-avatar" style="background:var(--g-indigo,linear-gradient(135deg,#1e1b4b,#4338ca))">T</div><div class="lb-info"><div class="lb-name">Tom Williams</div><div class="lb-sub">12 commutes · 76 km</div></div><div class="lb-hp">1,520 HP</div></div>
+          <div class="lb-row"><div class="lb-rank">5</div><div class="lb-avatar" style="background:linear-gradient(135deg,#0f766e,#14b8a6)">L</div><div class="lb-info"><div class="lb-name">Layla Hassan</div><div class="lb-sub">11 commutes · 68 km</div></div><div class="lb-hp">1,320 HP</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ───────────────────────────────────────────────── -->
+    <div class="page" id="page-settings">
+      <div class="section-header">
+        <div><div style="font-size:12px;color:var(--text3);font-weight:600;margin-bottom:2px">Your account</div><div class="section-title">Profile</div></div>
+      </div>
+
+      <!-- Avatar -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 24px 24px">
+        <div style="width:80px;height:80px;border-radius:50%;background:var(--grad-card);display:flex;align-items:center;justify-content:center;font-family:'Unbounded',sans-serif;font-size:28px;font-weight:800;margin-bottom:12px;box-shadow:0 8px 30px rgba(8,145,178,0.35)">A</div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:800">Alice Chen</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px;font-weight:500">alice.chen@ubs.com</div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Account</div>
+        <div class="settings-card">
+          <div class="setting-row">
+            <div class="setting-icon g-blue">👤</div>
+            <div class="setting-body"><div class="setting-name">Personal details</div><div class="setting-sub">Name, postcode, phone</div></div>
+            <div class="setting-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-icon g-green">🌿</div>
+            <div class="setting-body"><div class="setting-name">Strava</div><div class="setting-sub" style="color:var(--green)">Connected ✓</div></div>
+            <div class="setting-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-icon g-indigo">📍</div>
+            <div class="setting-body"><div class="setting-name">School locations</div><div class="setting-sub">0 locations saved</div></div>
+            <div class="setting-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Preferences</div>
+        <div class="settings-card">
+          <div class="setting-row">
+            <div class="setting-icon g-purple">🔔</div>
+            <div class="setting-body"><div class="setting-name">Notifications</div><div class="setting-sub">Activity, transfers, vouchers</div></div>
+            <div class="toggle"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-icon g-teal">🌙</div>
+            <div class="setting-body"><div class="setting-name">Dark mode</div><div class="setting-sub">Always on</div></div>
+            <div class="toggle"><div class="toggle-thumb"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:0 16px 24px">
+        <button style="width:100%;padding:14px;border-radius:16px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);color:#f87171;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer">Sign out</button>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <div class="nav-btn active" id="nav-home" onclick="showPage('home')">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-btn" id="nav-activity" onclick="showPage('activity')">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Activity</span>
+    </div>
+    <div class="nav-btn" id="nav-merchants" onclick="showPage('merchants')">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span>Pay</span>
+    </div>
+    <div class="nav-btn" id="nav-wallet" onclick="showPage('wallet')">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <span>Wallet</span>
+    </div>
+    <div class="nav-btn" id="nav-admin" onclick="showPage('admin')">
+      <div class="nav-dot"></div>
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Admin</span>
+    </div>
+  </nav>
+</div>
+
+<script>
+// ── Clock ──────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('statusTime').textContent =
+    now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+updateClock(); setInterval(updateClock, 10000);
+
+// ── Navigation ─────────────────────────────────────────────────────
+const pages = ['home','activity','merchants','wallet','admin','settings'];
+
+function showPage(id) {
+  pages.forEach(p => {
+    const page = document.getElementById('page-' + p);
+    const nav  = document.getElementById('nav-' + p);
+    if (page) page.classList.toggle('active', p === id);
+    if (nav)  nav.classList.toggle('active', p === id);
+  });
+  document.querySelector('.content').scrollTop = 0;
+}
+
+// ── Segment control ────────────────────────────────────────────────
+function switchSeg(idx) {
+  document.querySelectorAll('#merchantSegment .seg-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  [0,1,2].forEach(i => {
+    const el = document.getElementById('seg-' + i);
+    if (el) el.style.display = i === idx ? 'block' : 'none';
+  });
+}
+
+// ── QR Modal ───────────────────────────────────────────────────────
+let qrSecs = 118, qrTick;
+
+function openQR() {
+  document.getElementById('qrModal').classList.add('open');
+  qrSecs = 118; renderTimer();
+  qrTick = setInterval(() => { if (--qrSecs <= 0) closeQR(); else renderTimer(); }, 1000);
+}
+function closeQR() {
+  document.getElementById('qrModal').classList.remove('open');
+  clearInterval(qrTick);
+}
+function renderTimer() {
+  const el = document.getElementById('qrTimer');
+  el.textContent = Math.floor(qrSecs/60) + ':' + String(qrSecs%60).padStart(2,'0');
+  el.className = 'qr-timer ' + (qrSecs > 60 ? 'green' : qrSecs > 20 ? 'orange' : 'red');
+}
+function handleOverlayClick(e) { if (e.target === e.currentTarget) closeQR(); }
+
+// ── Admin chart ────────────────────────────────────────────────────
+const data = [0,140,0,300,160,340,0,180,260,320,0,220,160,300,360,180,0,200,280,340,160,0,260,200,340,280,160,0,300,160];
+const max  = Math.max(...data);
+const wrap = document.getElementById('adminChart');
+data.forEach((v, i) => {
+  const b = document.createElement('div');
+  b.className = 'bar';
+  b.style.height    = (v > 0 ? Math.max(6, (v/max)*68) : 3) + 'px';
+  b.style.background = i === data.length-1
+    ? 'linear-gradient(to top, #34d399, #6ee7b7)'
+    : v > 0
+      ? `rgba(52,211,153,${0.3 + (v/max)*0.5})`
+      : 'rgba(255,255,255,0.05)';
+  wrap.appendChild(b);
+});
+</script>
+</body>
+</html>
